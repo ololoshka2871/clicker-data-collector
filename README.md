@@ -1,5 +1,9 @@
-# Управление установкой точной настройки кварцевых резонаторов лазером
+![clc](src/bin/clicker-data-collector-server/www/images/favicon.ico)
+# Сборщик данных с устройства "Щелкунчик"
 
-## Based on
-* [laser-setup-interface](https://github.com/ololoshka2871/Laser-setup-interface)
-* [kosa-interface](https://github.com/ololoshka2871/kosa-interface)
+## Устройство
+- Репозиторий: [rk-meter (Щелкунчик)](https://bitbucket.org/Sctb_Elpa/rk-meter/src/master/)
+
+## Назначение
+Сбор данных с устройства "Щелкунчик" и экспорт их в форме Excel файлов.
+Выполнено в форме Web-приложения.

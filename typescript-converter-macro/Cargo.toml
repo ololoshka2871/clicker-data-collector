@@ -8,12 +8,12 @@ authors = ["ololoshka2871"]
 proc-macro = true
 
 [dependencies]
-syn = "1.0"
+syn = "2.0"
 quote = "1.0"
 
-swc = { version = "0.265", default_features = false, features = ["debug"] }   # Компиляция TypeScript в JavaScript, Сборка бандла
-swc_common = "0.32"
-swc_ecma_ast = "0.109"
-swc_ecma_parser = "0.139"
-swc_ecma_transforms_typescript = "0.182"
-swc_ecma_visit = "0.95"
+swc = { version = "0.273.9", default_features = false, features = ["debug"] }   # Компиляция TypeScript в JavaScript, Сборка бандла
+swc_common = "0.33.18"
+swc_ecma_ast = "0.112.4"
+swc_ecma_parser = "0.143.5"
+swc_ecma_transforms_typescript = "0.188.8"
+swc_ecma_visit = "0.98.4"

@@ -20,7 +20,7 @@ lazy_static::lazy_static! {
 
     // js with map
     static ref JS_DATA: HashMap<&'static str, (&'static str, &'static str)> = hashmap! {
-        "common" => include_ts!("www\\ts\\common.ts"),
+        //"common" => include_ts!("www\\ts\\common.ts"),
     };
 
     // css
