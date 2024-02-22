@@ -1,53 +1,110 @@
-mod static_files;
+#![feature(async_iterator)]
 
-use std::net::SocketAddr;
+mod handlers;
+
+use std::{net::SocketAddr, sync::Arc};
 
 use axum::{
-    extract::{FromRef, State},
-    response::IntoResponse,
-    routing::get,
+    extract::FromRef,
+    response::Redirect,
+    routing::{get, patch, post},
     Router,
 };
-use serde::Serialize;
+
+use clicker_data_collector::data_point::DataPoint;
+use tokio::sync::Mutex;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::prelude::*;
 
-use axum_template::{engine::Engine, Key, RenderHtml};
+use axum_template::engine::Engine;
 
 use minijinja::Environment;
 
+use handlers::*;
+
 pub(crate) type AppEngine = Engine<Environment<'static>>;
+
+#[derive(Clone)]
+struct ChannelState {
+    current_step: u32,
+    initial_freq: Option<f32>,
+
+    points: Vec<DataPoint<f64>>,
+}
 
 #[derive(Clone, FromRef)]
 struct AppState {
     engine: AppEngine,
+    //config: laser_precision_adjust::Config,
+    //config_file: std::path::PathBuf,
+}
+
+fn float2dgt(value: String) -> String {
+    if let Ok(v) = value.parse::<f32>() {
+        format!("{v:.2}")
+    } else {
+        value
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     // Enable tracing using Tokio's https://tokio.rs/#tk-lib-tracing
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "laser-precision-adjust-server=debug,tower_http=info".into()),
-        ))
-        .with(tracing_subscriber::fmt::layer())
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "laser_precision_adjust_server=debug,tower_http=info".into()),
+        )
+        .with(tracing_subscriber::fmt::layer().with_target(false))
         .init();
+
+    let emulate_freq = std::env::var("EMULATE_FREQ")
+        .map(|v| v.parse::<f32>().unwrap_or_default())
+        .ok();
+    if let Some(f) = &emulate_freq {
+        tracing::warn!("Emulating frequency: {}", f);
+    }
+
+    tracing::info!("Loading config...");
+    //let (config, config_file) = laser_precision_adjust::Config::load();
+
+    tracing::warn!("Testing connection...");
+    // todo
 
     // State for our application
     let mut minijinja = Environment::new();
     minijinja
-        .add_template("index", include_str!("www/html/index.html"))
+        .add_template("work", include_str!("wwwroot/html/work.jinja"))
+        .unwrap();
+    minijinja
+        .add_template("config", include_str!("wwwroot/html/config.jinja"))
+        .unwrap();
+    minijinja
+        .add_template("report.html", include_str!("wwwroot/html/report.jinja"))
         .unwrap();
 
+    minijinja.add_filter("float2dgt", float2dgt);
+
+    let app_state = AppState {
+        engine: Engine::from(minijinja),
+        //config,
+        //config_file,
+    };
+
+    // Build our application with some routes
     let app = Router::new()
-        // Here we setup the routes. Note: No macros
-        .route("/", get(handle_index))
+        .route("/", get(|| async { Redirect::permanent("/work") }))
+        .route("/control/:action", post(handle_control))
+
+        //.route("/report/:part_id", get(handle_generate_report))
+
+        .route("/config", get(handle_config).patch(handle_update_config))
+        //.route("/config-and-save", patch(handle_config_and_save))
+
         .route("/static/:path/:file", get(static_files::handle_static))
-        .with_state(AppState {
-            engine: Engine::from(minijinja),
-        })
+        .route("/lib/*path", get(static_files::handle_lib))
+        .with_state(app_state)
         // Using tower to add tracing layer
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
 
@@ -55,15 +112,7 @@ async fn main() -> Result<(), std::io::Error> {
     // Note that Axum has great examples for a log of practical scenarios,
     // including graceful shutdown (https://github.com/tokio-rs/axum/tree/main/examples)
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("Listening on {}", addr);
+
+    tracing::info!("Listening on {}", addr);
     axum_server::bind(addr).serve(app.into_make_service()).await
-}
-
-#[derive(Debug, Serialize)]
-pub struct Person {
-    name: String,
-}
-
-async fn handle_index(State(engine): State<AppEngine>) -> impl IntoResponse {
-    RenderHtml(Key("index".to_owned()), engine, ())
 }

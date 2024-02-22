@@ -1,0 +1,122 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "bootstrap@4.6.2",
+      "destination": "wwwroot/lib/bootstrap/",
+      "files": [
+        "css/bootstrap.css",
+        "css/bootstrap.css.map",
+        "js/bootstrap.bundle.min.js",
+        "js/bootstrap.bundle.min.js.map"
+      ]
+    },
+    {
+      "library": "font-awesome@5.14.0",
+      "destination": "wwwroot/lib/font-awesome/",
+      "files": [
+        "css/all.min.css",
+        "js/all.min.js",
+        "sprites/regular.svg",
+        "sprites/solid.svg",
+        "sprites/brands.svg",
+        "webfonts/fa-brands-400.eot",
+        "webfonts/fa-brands-400.svg",
+        "webfonts/fa-brands-400.ttf",
+        "webfonts/fa-brands-400.woff",
+        "webfonts/fa-brands-400.woff2",
+        "webfonts/fa-regular-400.eot",
+        "webfonts/fa-regular-400.svg",
+        "webfonts/fa-regular-400.ttf",
+        "webfonts/fa-regular-400.woff",
+        "webfonts/fa-regular-400.woff2",
+        "webfonts/fa-solid-900.eot",
+        "webfonts/fa-solid-900.svg",
+        "webfonts/fa-solid-900.ttf",
+        "webfonts/fa-solid-900.woff",
+        "webfonts/fa-solid-900.woff2"
+      ]
+    },
+    {
+      "library": "jquery@3.5.1",
+      "destination": "wwwroot/lib/jquery/",
+      "files": [
+        "jquery.min.js",
+        "jquery.min.map"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/jquery@3.5.1",
+      "destination": "wwwroot/lib/@types/jquery/"
+    },
+    {
+      "library": "FileSaver.js@2.0.5",
+      "destination": "wwwroot/lib/FileSaver.js/",
+      "files": [
+        "FileSaver.min.js",
+        "FileSaver.min.js.map"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/file-saver@2.0.5",
+      "destination": "wwwroot/lib/@types/FileSaver.js"
+    },
+    {
+      "library": "oboe.js@2.1.5",
+      "destination": "wwwroot/lib/oboe.js/",
+      "files": [
+        "oboe-browser.min.js"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/oboe@2.1.2",
+      "destination": "wwwroot/lib/@types/oboe/"
+    },
+    {
+      "library": "Chart.js@2.9.4",
+      "destination": "wwwroot/lib/chart.js/",
+      "files": [
+        "Chart.bundle.min.js",
+        "Chart.min.css"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/chart.js@2.9.38",
+      "destination": "wwwroot/lib/@types/chart.js/"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "hotkeys-js@3.12.0",
+      "destination": "wwwroot/lib/hotkeys-js/",
+      "files": [
+        "dist/hotkeys.min.js"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "chartjs-chart-box-and-violin-plot@4.0.0",
+      "destination": "wwwroot/lib/chartjs-chart-box-and-violin-plot/",
+      "files": [
+        "build/Chart.BoxPlot.min.js"
+      ]
+    },
+    {
+      "library": "jquery-noty@2.4.1",
+      "destination": "wwwroot/lib/jquery-noty/",
+      "files": [
+        "packaged/jquery.noty.packaged.min.js",
+        "themes/bootstrap.min.js"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/jquery.noty@2.4.1",
+      "destination": "wwwroot/lib/@types/jquery.noty/"
+    }
+  ]
+}

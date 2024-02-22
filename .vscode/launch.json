@@ -7,30 +7,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "cli",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_LOG": "trace"
-            },
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=laser-precision-adjust-cli"
-                ],
-                "filter": {
-                    "kind": "bin"
-                }
-            }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "web",
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {
-                "RUST_LOG": "laser-precision-adjust-server=debug"
+                "RUST_LOG": "laser_precision_adjust_server=trace,laser_precision_adjust=debug",
             },
             "cargo": {
                 "args": [
@@ -41,6 +22,90 @@
                     "kind": "bin"
                 }
             }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "web fake_freq",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "laser_precision_adjust_server=trace",
+                "EMULATE_FREQ": "32763.7"
+            },
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=laser-precision-adjust-server"
+                ],
+                "filter": {
+                    "kind": "bin"
+                }
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "try_approximate",
+            "args": [
+                "find_shot_v2/data/freq_26-09-2023_10h-11m.log-fragments.json"
+            ],
+            "cwd": "${workspaceFolder}",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=try_approximate"
+                ],
+                "filter": {
+                    "kind": "bin"
+                }
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "open chrome local",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/src/bin/laser-precision-adjust-server/wwwroot",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*.ts": "${webRoot}/ts/*.ts",
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "open chrome remote",
+            "url": "http://192.168.0.108:3000/",
+            "webRoot": "${workspaceFolder}/src/bin/laser-precision-adjust-server/wwwroot",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "*.ts": "${webRoot}/ts/*.ts",
+            }
+        },
+        {
+            "name": "Python: separate_seriaes",
+            "type": "python",
+            "request": "launch",
+            "program": "find_shot/data/separate_seriaes.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "find_shot/data/freq_11-09-2023_13h-38m.log"
+            ]
+        },
+        {
+            "name": "Python: denoize",
+            "type": "python",
+            "request": "launch",
+            "program": "find_shot/denoize.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "find_shot/data/freq_11-09-2023_13h-05m.log",
+                "0.1",
+                "11"
+            ]
         },
     ]
 }

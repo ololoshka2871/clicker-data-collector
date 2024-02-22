@@ -1,4 +1,0 @@
-
-interface ICommon {
-    init(): void;
-}
