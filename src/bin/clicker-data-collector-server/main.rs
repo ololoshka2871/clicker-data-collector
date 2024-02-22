@@ -36,8 +36,8 @@ struct ChannelState {
 #[derive(Clone, FromRef)]
 struct AppState {
     engine: AppEngine,
-    //config: laser_precision_adjust::Config,
-    //config_file: std::path::PathBuf,
+    config: clicker_data_collector::Config,
+    config_file: std::path::PathBuf,
 }
 
 fn float2dgt(value: String) -> String {
@@ -67,7 +67,7 @@ async fn main() -> Result<(), std::io::Error> {
     }
 
     tracing::info!("Loading config...");
-    //let (config, config_file) = laser_precision_adjust::Config::load();
+    let (config, config_file) = clicker_data_collector::Config::load();
 
     tracing::warn!("Testing connection...");
     // todo
@@ -80,28 +80,24 @@ async fn main() -> Result<(), std::io::Error> {
     minijinja
         .add_template("config", include_str!("wwwroot/html/config.jinja"))
         .unwrap();
-    minijinja
-        .add_template("report.html", include_str!("wwwroot/html/report.jinja"))
-        .unwrap();
 
     minijinja.add_filter("float2dgt", float2dgt);
 
+    let web_port = config.web_port;
+
     let app_state = AppState {
         engine: Engine::from(minijinja),
-        //config,
-        //config_file,
+        config,
+        config_file,
     };
 
     // Build our application with some routes
     let app = Router::new()
-        .route("/", get(|| async { Redirect::permanent("/work") }))
+        .route("/", get(|| async { Redirect::permanent("/config") }))
         .route("/control/:action", post(handle_control))
-
         //.route("/report/:part_id", get(handle_generate_report))
-
         .route("/config", get(handle_config).patch(handle_update_config))
         //.route("/config-and-save", patch(handle_config_and_save))
-
         .route("/static/:path/:file", get(static_files::handle_static))
         .route("/lib/*path", get(static_files::handle_lib))
         .with_state(app_state)
@@ -111,7 +107,7 @@ async fn main() -> Result<(), std::io::Error> {
     // In practice: Use graceful shutdown.
     // Note that Axum has great examples for a log of practical scenarios,
     // including graceful shutdown (https://github.com/tokio-rs/axum/tree/main/examples)
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], web_port));
 
     tracing::info!("Listening on {}", addr);
     axum_server::bind(addr).serve(app.into_make_service()).await

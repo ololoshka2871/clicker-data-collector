@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum_template::{Key, RenderHtml};
 
+use clicker_data_collector::Config;
 use serde::{Deserialize, Serialize};
 
 use tokio::sync::Mutex;
@@ -36,18 +37,18 @@ pub struct UpdateAndSaveConfigValues {
 
 pub(crate) async fn handle_config(
     State(engine): State<AppEngine>,
-    //State(config): State<Config>,
-    //State(config_file): State<std::path::PathBuf>,
+    State(config): State<Config>,
+    State(config_file): State<std::path::PathBuf>,
 ) -> impl IntoResponse {
     #[derive(Serialize)]
     struct ConfigModel {
-        //pub config_file: String,
-        //pub config: Config,
+        pub config_file: String,
+        pub config: Config,
     }
 
     let model: ConfigModel = ConfigModel {
-        //config_file: "none".to_string(),
-        //config,
+        config_file: config_file.to_string_lossy().to_string(),
+        config,
     };
 
     RenderHtml(Key("config".to_owned()), engine, model)

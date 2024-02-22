@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Точная настройка кварцевых резонаторов</title>
+    <title>Сборщик данных тестера Rk</title>
     <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
 
     <!-- Common styles -->
@@ -24,9 +24,9 @@
         <nav
             class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-1 navbar-custom">
             <div class="container">
-                <a class="navbar-brand" href="/">
+                <!-- <a class="navbar-brand" href="/">
                     <img src="/static/images/rez.png" height="40" width="160" style="margin-top:0px;">
-                </a>
+                </a> -->
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -36,14 +36,8 @@
                         <li class="nav-item active" id="nav-bar-work">
                             <a class="nav-link" href="/work"><i class="fas fa-ruler-horizontal"></i> Работа</a>
                         </li>
-                        <li class="nav-item" id="nav-bar-work">
-                            <a class="nav-link" href="/auto"><i class="fas fa-magic"></i> Автонастройка</a>
-                        </li>
                         <li class="nav-item" id="nav-bar-config">
                             <a class="nav-link" href="/config"><i class="fas fa-cogs"></i> Настройка</a>
-                        </li>
-                        <li class="nav-item ml-auto" id="nav-bar-stat">
-                            <a class="nav-link" href="/stat_manual"><i class="fas fa-chart-bar"></i> Статистики</a>
                         </li>
                         <li class="nav-item" id="nav-bar-config">
                             <a class="nav-link" href="#" id="gen-report"><i class="fas fa-flag"></i> Отчет</a>
@@ -56,115 +50,6 @@
     <div class="container">
         <main role="main" class="pb-3">
             <div class="container">
-                <div class="row">
-                    <div class="col-8 col-md-3 bg-primary" id="current-freq-display-bg" data-toggle="tooltip"
-                        title="Текущая частота выбранного резонатора">
-                        <span class="seven-segment-font freq-display" id="current-freq-display">32768.53<span>
-                    </div>
-                    <div class="col-4 col-md-2 bg-secondary">
-                        <input type="text" class="form-control seven-segment-font freq-config" id="freq-target"
-                            placeholder="Цель" value="{{ target_freq }}" data-toggle="tooltip"
-                            title="Целевая частота настройки резонаторов"> Гц
-                        <input type="text" class="form-control seven-segment-font freq-config" id="freq_adj"
-                            placeholder="Поправка" value="{{ work_offset_hz }}" data-toggle="tooltip"
-                            title="Поправка показаний частотомера установки"> Гц
-                    </div>
-                    <div class="col-3 col-md-2 align-middle btn-group-vertical">
-                        <button class="btn" type="button" id="adj-ctrl-btn">Настроить</button>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <div class="container">
-                            <div class="row">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="К шагу" data-toggle="tooltip"
-                                        title="Перейти к шагу обработки" id="move-to-input">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" id="move-to-btn"><i
-                                                class="fa fa-play text-success"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row" style="margin-top: 1em;">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Авто-отступ" value="1"
-                                        id="auto-offset-input" data-toggle="tooltip"
-                                        title="Автоматическое смещеине после работчего прохода">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" id="burn-btn" type="button"><i
-                                                class="fa fa-fire-alt text-danger" title="ЖЕЧЬ! (пробел)"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3 col-md-2 align-middle btn-group-vertical btn-group-xs">
-                        <button class="btn btn-xs btn-success camera-ctrl" ctrl-request="close" data-toggle="tooltip"
-                            title="Закрыть вакуумную камеру"><i class="fa fa-lock"></i> Закрыть</button>
-                        <hr class="thin-hr" />
-                        <button class="btn btn-xs btn-info camera-ctrl" ctrl-request="vac" data-toggle="tooltip"
-                            data-state="enabled" title="Открыть клапан вакуумного насоса"><i class="fa fa-soap"></i>
-                            Вакуум</button>
-                        <hr class="thin-hr" />
-                        <button class="btn btn-xs btn-danger camera-ctrl" ctrl-request="open" data-toggle="tooltip"
-                            title="Открыть вакуумную камеру"><i class="fa fa-unlock"></i> Открыть</button>
-                    </div>
-                    <div class="col-2 col-md-1 align-middle btn-group-vertical">
-                        <button class="btn btn-sm btn-warning" data-toggle="tooltip" id="scan-all-btn"
-                            title="Сканировать все каналы. Будет зафиксирована начальная частота"><i
-                                class="fa fa-sticky-note"></i> Оценка</button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-5 bd-callout bd-callout-danger">
-                        <h6>Резонаторы</h6>
-                        <table id="rezonators" class="table table-sm table-bordered table-condensed">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Шаг</th>
-                                    <th scope="col">F исх.</th>
-                                    <th scope="col">F тек.</th>
-                                    <th scope="col" class="text-warning"><i class="fas fa-star"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% macro status2icon(status='') -%}
-                                {% if status == 'unknown' -%}
-                                <td type="freq-status-icon" status={{status}} class="text-primary"><i
-                                        class="fa fa-minus"></i></td>
-                                {% elif status == 'upper' -%}
-                                <td type="freq-status-icon" status={{status}} class="text-danger"><i
-                                        class="fas fa-caret-square-up"></i></td>
-                                {% elif status == 'ok' -%}
-                                <td type="freq-status-icon" status={{status}} class="text-success"><i
-                                        class="fas fa-check"></i></td>
-                                {% elif status == 'lower' -%}
-                                <td type="freq-status-icon" status={{status}} class="text-warning"><i
-                                        class="fas fa-caret-square-down"></i></td>
-                                {% else -%}
-                                <td type="freq-status-icon" status={{status}} class="text-danger"><i
-                                        class="fa fa-caret-square-down"></i></td>
-                                {% endif -%}
-                                {% endmacro -%}
-                                {% for rez in rezonators -%}
-                                <tr class="clickableRow" id="rez-{{ loop.index }}-row" row-index="{{ loop.index }}">
-                                    <th scope="row">{{ loop.index }}</th>
-                                    <td type="step"><code class="text-dark">{{ rez.current_step }}</code></td>
-                                    <td type="freq-initial"><code class="text-dark">{{ rez.initial_freq }}</code></td>
-                                    <td type="freq-current"><code class="text-dark">{{ rez.current_freq }}</code></td>
-                                    {{ status2icon(rez.status) }}
-                                </tr>
-                                {% endfor -%}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="col-md-7 bd-callout bd-callout-info" style="margin-top:20px;">
-                        <h6>История настройки</h6>
-                        <div class="chart-container" style="position: relative;">
-                            <canvas id="adj-plot"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
