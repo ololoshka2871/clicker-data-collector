@@ -18,9 +18,6 @@ lazy_static::lazy_static! {
     static ref JS_DATA: HashMap<&'static str, (&'static str, &'static str, &'static str)> = hashmap! {
         "common" => include_ts_relative!("../wwwroot/ts/common.ts"),
         "work" => include_ts_relative!("../wwwroot/ts/work.ts"),
-        "stat_manual" => include_ts_relative!("../wwwroot/ts/stat_manual.ts"),
-        "stat_auto" => include_ts_relative!("../wwwroot/ts/stat_auto.ts"),
-        "auto" => include_ts_relative!("../wwwroot/ts/auto.ts"),
         "config" => include_ts_relative!("../wwwroot/ts/config.ts"),
     };
 

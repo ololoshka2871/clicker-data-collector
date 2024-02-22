@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use swc::{
     config::{IsModule, SourceMapsConfig},
-    Compiler, PrintArgs,
+    Compiler,
 };
 
 use swc_common::{
@@ -57,14 +57,23 @@ fn ts_to_js(filename: &str, ts_code: &str) -> (String, String) {
         let module = module.fold_with(&mut strip(top_level_mark));
 
         // https://rustdoc.swc.rs/swc/struct.Compiler.html#method.print
-        let mut args = PrintArgs::default();
-        args.inline_sources_content = true;
-        args.source_map = SourceMapsConfig::Bool(true);
-        args.comments = Some(compiler.comments());
-        args.emit_source_map_columns = false;
-        args.codegen_config.minify = false;
-        
-        let ret = compiler.print(&module, args).expect("print failed");
+        let ret = compiler
+            .print(
+                &module,                      // ast to print
+                None,                         // source file name
+                None,                         // output path
+                false,                        // inline sources content
+                EsVersion::EsNext,            // target ES version
+                SourceMapsConfig::Bool(true), // source map config
+                &Default::default(),          // source map names
+                None,                         // original source map
+                false,                         // minify
+                Some(compiler.comments()),    // comments
+                false,                        // emit source map columns
+                false,                        // ascii only
+                "//Ts -> JS via SWC\n\n",     // preable
+            )
+            .expect("print failed");
 
         return (ret.code, ret.map.expect("No map generated"));
     });
