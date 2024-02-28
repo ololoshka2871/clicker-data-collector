@@ -93,7 +93,8 @@ async fn main() -> Result<(), std::io::Error> {
 
     // Build our application with some routes
     let app = Router::new()
-        .route("/", get(|| async { Redirect::permanent("/config") }))
+        .route("/", get(|| async { Redirect::permanent("/work") }))
+        .route("/work", get(handle_work))
         .route("/control/:action", post(handle_control))
         //.route("/report/:part_id", get(handle_generate_report))
         .route("/config", get(handle_config).patch(handle_update_config))
