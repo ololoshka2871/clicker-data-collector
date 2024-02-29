@@ -14,6 +14,7 @@
     <!-- specific styles -->
     <link rel="stylesheet" href="/static/css/docs.min.css" />
     <link rel="stylesheet" href="/lib/chart.js/Chart.min.css">
+    <link rel="stylesheet" href="/lib/gijgo/combined/css/gijgo.min.css">
 
     <!-- main style -->
     <link rel="stylesheet" href="/static/css/site.css" />
@@ -22,7 +23,7 @@
 <body>
     <header>
         <nav
-            class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-1 navbar-custom">
+            class="navbar navbar-expand-custom navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-1 navbar-custom">
             <div class="container">
                 <!-- <a class="navbar-brand" href="/">
                     <img src="/static/images/rez.png" height="40" width="160" style="margin-top:0px;">
@@ -49,7 +50,10 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
-            <div class="container">
+            <div class="container-fluid">
+                <h3>Снятие показаний резонаторов</h3>
+                <hr />
+                <div id="tree"></div>
             </div>
         </main>
     </div>
@@ -62,6 +66,7 @@
     <script src="/static/js/common.js"></script>
 
     <!-- Specific scripts -->
+    <script src="/lib/gijgo/combined/js/gijgo.min.js"></script>
     <script src="/lib/chart.js/Chart.bundle.min.js"></script>
     <script src="/lib/oboe.js/oboe-browser.min.js"></script>
     <script src="/lib/hotkeys-js/dist/hotkeys.min.js"></script>

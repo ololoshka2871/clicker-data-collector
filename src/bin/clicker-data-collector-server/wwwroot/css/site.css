@@ -1,5 +1,5 @@
 .navbar-custom {
-    background-color: rgba(230, 186, 186, 0.75) !important;
+    background-color: rgba(155, 241, 199, 0.75) !important;
 }
 
 a.navbar-brand {
@@ -79,8 +79,30 @@ body {
 /* nav active
   -------------------------------------------------- */
 .nav-item.active {
-    background: rgba(128, 128, 128, 0.15);
+    background: rgba(128, 128, 128, 0.311);
     border-radius: 0em;
+}
+
+/* https://stackoverflow.com/a/36289507 */
+@media (min-width: 375px){
+    .navbar-expand-custom {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+    .navbar-expand-custom .navbar-nav {
+        flex-direction: row;
+    }
+    .navbar-expand-custom .navbar-nav .nav-link {
+        padding-right: .5rem;
+        padding-left: .5rem;
+    }
+    .navbar-expand-custom .navbar-collapse {
+        display: flex!important;
+    }
+    .navbar-expand-custom .navbar-toggler {
+        display: none;
+    }
 }
 
 /* 7-segment-font

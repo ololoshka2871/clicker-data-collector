@@ -39,6 +39,20 @@
       ]
     },
     {
+      "library": "gijgo@1.9.2",
+      "destination": "wwwroot/lib/gijgo",
+      "files": [
+        "combined/js/gijgo.min.js",
+        "combined/css/gijgo.min.css",
+        "combined/fonts/*"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/gijgo@1.9.2",
+      "destination": "wwwroot/lib/@types/gijgo"
+    },
+    {
       "library": "jquery@3.5.1",
       "destination": "wwwroot/lib/jquery/",
       "files": [
