@@ -94,7 +94,8 @@ async fn main() -> Result<(), std::io::Error> {
     let app = Router::new()
         .route("/", get(|| async { Redirect::permanent("/work") }))
         .route("/work", get(handle_work))
-        //.route("/report/:part_id", get(handle_generate_report))
+        .route("/global", get(handle_get_flobals).put(handle_set_globals).delete(handler_reset_globals))
+        .route("/report", get(handle_generate_report_excel))
         .route("/config", get(handle_config).patch(handle_update_config))
         //.route("/config-and-save", patch(handle_config_and_save))
         .route("/static/:path/:file", get(static_files::handle_static))
@@ -125,7 +126,7 @@ fn generate_fake_data(dm: &mut DataModel) {
     use rand::Rng;
 
     let mut rng = rand::thread_rng();
-    for i in 1..=3 {
+    for i in 1..=10 {
         let freq = 32760.0 + rng.gen_range(-10.0..10.0);
         let rk = rng.gen_range(20.0..100.0);
         dm.resonators

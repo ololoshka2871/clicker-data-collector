@@ -60,6 +60,36 @@
         </main>
     </div>
 
+    <div id="dialog" style="display: none;">
+        <div data-role="body" id="report_form">
+            <div class="form-check">
+                <label for="data_type">Испытания</label>
+                <input type="text" class="form-control" id="data_type">
+            </div>
+            <div class="form-check">
+                <label for="route_id">Маршрутный лист №</label>
+                <input type="text" class="form-control" id="route_id" />
+            </div>
+            <div class="form-check">
+                <label for="ambient_temperature_range">При температурах</label>
+                <input type="text" class="form-control" id="ambient_temperature_range" placeholder="200,300" />
+            </div>
+            <hr />
+            <div class="form-check">
+                <label for="comment">Коментарий к партии</label>
+                <input type="text" class="form-control" id="comment" />
+            </div>
+            <div class="form-check">
+                <label for="date">Дата</label>
+                <input id="date" />
+            </div>
+        </div>
+        <div data-role="footer">
+            <button type="button" id="btnCancel" class="btn btn-secondary">Отмена</button>
+            <button type="submit" id="btnSubmit" class="btn btn-primary">Создать</button>
+        </div>
+    </div>
+
     <!-- Common scripts -->
     <script src="/lib/jquery/jquery.min.js"></script>
     <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -73,6 +103,7 @@
     <script src="/lib/chart.js/Chart.bundle.min.js"></script>
     <script src="/lib/oboe.js/oboe-browser.min.js"></script>
     <script src="/lib/hotkeys-js/dist/hotkeys.min.js"></script>
+    <script src="/lib/joi/dist/joi-browser.min.js"></script>
     <script src="/static/js/work.js"></script>
 </body>
 

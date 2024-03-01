@@ -30,6 +30,7 @@ tokio-util = { version = "0.7", default-features = false, features = ["codec"] }
 ### serialisation
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
+dateparser = "0.2"
 
 ###
 typescript-converter-macro = { path = "./typescript-converter-macro" }

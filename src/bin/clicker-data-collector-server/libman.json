@@ -144,6 +144,15 @@
       "provider": "jsdelivr",
       "library": "@types/jquery.noty@2.4.1",
       "destination": "wwwroot/lib/@types/jquery.noty/"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "joi@17.12.2",
+      "destination": "wwwroot/lib/joi/",
+      "files": [
+        "dist/joi-browser.min.js",
+        "lib/index.d.ts"
+      ]
     }
   ]
 }

@@ -32,10 +32,6 @@ function round_to_2_digits(x?: number): string {
     }
 }
 
-function gen_report() {
-
-}
-
 function patch_value(target: HTMLInputElement, field_name: string) {
     const val = $(target).val() || "0.0";
 
