@@ -13,6 +13,19 @@
       ]
     },
     {
+      "provider": "jsdelivr",
+      "library": "bootstrap-menu@1.0.14",
+      "destination": "wwwroot/lib/bootstrap-menu/",
+      "files": [
+        "dist/BootstrapMenu.min.js"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@types/bootstrap-menu@1.0.4",
+      "destination": "wwwroot/lib/@types/bootstrap-menu"
+    },
+    {
       "library": "font-awesome@5.14.0",
       "destination": "wwwroot/lib/font-awesome/",
       "files": [
@@ -39,7 +52,7 @@
       ]
     },
     {
-      "library": "gijgo@1.9.2",
+      "library": "gijgo@1.9.14",
       "destination": "wwwroot/lib/gijgo",
       "files": [
         "combined/js/gijgo.min.js",
@@ -49,7 +62,7 @@
     },
     {
       "provider": "jsdelivr",
-      "library": "@types/gijgo@1.9.2",
+      "library": "@types/gijgo@1.9.7",
       "destination": "wwwroot/lib/@types/gijgo"
     },
     {

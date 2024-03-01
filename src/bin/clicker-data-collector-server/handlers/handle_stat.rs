@@ -8,5 +8,3 @@ use axum::{
 use axum_template::{Key, RenderHtml};
 use serde::Serialize;
 use tokio::sync::Mutex;
-
-use super::common::format2digits;

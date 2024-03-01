@@ -7,11 +7,11 @@ use std::{net::SocketAddr, sync::Arc};
 use axum::{
     extract::FromRef,
     response::Redirect,
-    routing::{get, patch, post},
+    routing::{get, put},
     Router,
 };
 
-use clicker_data_collector::data_point::DataPoint;
+use clicker_data_collector::data_model::DataModel;
 use tokio::sync::Mutex;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
@@ -25,19 +25,13 @@ use handlers::*;
 
 pub(crate) type AppEngine = Engine<Environment<'static>>;
 
-#[derive(Clone)]
-struct ChannelState {
-    current_step: u32,
-    initial_freq: Option<f32>,
-
-    points: Vec<DataPoint<f64>>,
-}
-
 #[derive(Clone, FromRef)]
 struct AppState {
     engine: AppEngine,
     config: clicker_data_collector::Config,
     config_file: std::path::PathBuf,
+
+    data_model: Arc<Mutex<DataModel>>,
 }
 
 fn float2dgt(value: String) -> String {
@@ -85,22 +79,35 @@ async fn main() -> Result<(), std::io::Error> {
 
     let web_port = config.web_port;
 
+    let mut data_model = DataModel::default();
+    generate_fake_data(&mut data_model);
+
     let app_state = AppState {
         engine: Engine::from(minijinja),
         config,
         config_file,
+
+        data_model: Arc::new(Mutex::new(data_model)),
     };
 
     // Build our application with some routes
     let app = Router::new()
         .route("/", get(|| async { Redirect::permanent("/work") }))
         .route("/work", get(handle_work))
-        .route("/control/:action", post(handle_control))
         //.route("/report/:part_id", get(handle_generate_report))
         .route("/config", get(handle_config).patch(handle_update_config))
         //.route("/config-and-save", patch(handle_config_and_save))
         .route("/static/:path/:file", get(static_files::handle_static))
         .route("/lib/*path", get(static_files::handle_lib))
+        // rest_api
+        .route(
+            "/Measurements",
+            get(handle_measurements_get).post(handle_measurements_post),
+        )
+        .route(
+            "/Measurements/:id",
+            put(handle_measurements_put).delete(handle_measurements_delete),
+        )
         .with_state(app_state)
         // Using tower to add tracing layer
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
@@ -112,4 +119,22 @@ async fn main() -> Result<(), std::io::Error> {
 
     tracing::info!("Listening on {}", addr);
     axum_server::bind(addr).serve(app.into_make_service()).await
+}
+
+fn generate_fake_data(dm: &mut DataModel) {
+    use rand::Rng;
+
+    let mut rng = rand::thread_rng();
+    for i in 1..=3 {
+        let freq = 32760.0 + rng.gen_range(-10.0..10.0);
+        let rk = rng.gen_range(20.0..100.0);
+        dm.resonators
+            .push(clicker_data_collector::data_model::ResonatorData {
+                id: i,
+                timestamp: chrono::Local::now(),
+                frequency: freq,
+                rk,
+                comment: String::new(),
+            });
+    }
 }

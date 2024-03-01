@@ -27,7 +27,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "open chrome local",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:3289",
             "webRoot": "${workspaceFolder}/src/bin/clicker-data-collector-server/wwwroot",
             "sourceMaps": true,
             "sourceMapPathOverrides": {

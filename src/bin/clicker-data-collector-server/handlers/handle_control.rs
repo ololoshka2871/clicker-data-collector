@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashSet, sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use axum::{
     extract::{Path, State},
@@ -7,57 +7,74 @@ use axum::{
     Json,
 };
 
-use clicker_data_collector::{box_plot::BoxPlot, Config};
-
+use clicker_data_collector::data_model::DataModel;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
-#[derive(Deserialize, Debug)]
-pub struct ControlRequest {
-    /*
-    #[serde(rename = "Channel", skip_serializing_if = "Option::is_none")]
-    channel: Option<u32>,
+// Получить список всех резонаторов
+pub(crate) async fn handle_measurements_get(
+    State(data_model): State<Arc<Mutex<DataModel>>>,
+) -> impl IntoResponse {
+    #[derive(Serialize)]
+    struct Model {
+        records: Vec<ResonatorData>,
+        total: usize,
+    }
 
-    #[serde(rename = "CameraAction", skip_serializing_if = "Option::is_none")]
-    camera_action: Option<String>,
+    #[allow(non_snake_case)]
+    #[derive(Serialize, Deserialize)]
+    struct ResonatorData {
+        id: u32,
+        timestamp: String,
+        F: f32,
+        Rk: f32,
+        Comment: String,
+    }
 
-    #[serde(rename = "TargetPosition", skip_serializing_if = "Option::is_none")]
-    target_position: Option<i32>,
-
-    #[serde(rename = "MoveOffset", skip_serializing_if = "Option::is_none")]
-    move_offset: Option<i32>,
-    */
-}
-
-#[derive(Serialize, Debug, Default)]
-pub struct ControlResult {
-    success: bool,
-    error: Option<String>,
-    message: Option<String>,
-}
-
-impl ControlResult {
-    pub fn new(success: bool, error: Option<String>, message: Option<String>) -> Self {
-        Self {
-            success,
-            error,
-            message,
+    impl From<&clicker_data_collector::data_model::ResonatorData> for ResonatorData {
+        fn from(data: &clicker_data_collector::data_model::ResonatorData) -> Self {
+            Self {
+                id: data.id,
+                timestamp: data.timestamp.to_rfc3339(),
+                F: data.frequency,
+                Rk: data.rk,
+                Comment: data.comment.clone(),
+            }
         }
     }
 
-    pub fn success(message: Option<String>) -> Self {
-        Self::new(true, None, message)
-    }
+    let data_model_guard = data_model.lock().await;
+    let total = data_model_guard.resonators.len();
 
-    pub fn error(err_message: String) -> Self {
-        Self::new(false, Some(err_message), None)
-    }
+    Json(Model {
+        records: data_model_guard
+            .resonators
+            .iter()
+            .map(ResonatorData::from)
+            .collect::<Vec<_>>(),
+        total,
+    })
 }
 
-// Сюда будут поступать команды от веб-интерфейса
-pub(crate) async fn handle_control(
-    Path(path): Path<String>,
-    Json(payload): Json<ControlRequest>,
+// Начать процедуру измерения нового резонатора
+pub(crate) async fn handle_measurements_post(
+    State(data_model): State<Arc<Mutex<DataModel>>>,
+) -> impl IntoResponse {
+    (StatusCode::OK, "Done")
+}
+
+// Перезапустить измерение существующего резонатора id
+pub(crate) async fn handle_measurements_put(
+    State(data_model): State<Arc<Mutex<DataModel>>>,
+    Path(id): Path<u32>,
+) -> impl IntoResponse {
+    (StatusCode::OK, "Done")
+}
+
+// Удалить резонатор id
+pub(crate) async fn handle_measurements_delete(
+    State(data_model): State<Arc<Mutex<DataModel>>>,
+    Path(id): Path<u32>,
 ) -> impl IntoResponse {
     (StatusCode::OK, "Done")
 }
