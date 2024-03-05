@@ -326,8 +326,9 @@ function add_res(id?: number, insertBefore: boolean = false) {
     if (id === undefined) {
         config.url = '/Measurements';
     } else {
-        config.url = `/Measurements/${id}`,
-            config.data = insertBefore.toString();
+        config.url = `/Measurements/${id}`;
+        config.data = insertBefore.toString();
     }
+
     $.ajax(config);
 }

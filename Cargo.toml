@@ -32,6 +32,8 @@ serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
 dateparser = "0.2"
 
+prost = "0.12"
+
 ###
 typescript-converter-macro = { path = "./typescript-converter-macro" }
 
@@ -50,6 +52,9 @@ mime_guess = "2"
 
 ### excel report
 umya-spreadsheet = "1"
+
+[build-dependencies]
+prost-build = "0.12"
 
 [lib]
 name = "clicker_data_collector"
