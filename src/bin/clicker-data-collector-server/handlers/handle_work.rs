@@ -19,7 +19,7 @@ pub(crate) struct ReportHeader {
     pub date: String,
 }
 
-pub(crate) async fn handle_work(State(engine): State<AppEngine>) -> impl IntoResponse {
+pub(crate) async fn handle_get_work(State(engine): State<AppEngine>) -> impl IntoResponse {
     #[derive(Serialize)]
     struct WorkModel {}
 
@@ -28,7 +28,7 @@ pub(crate) async fn handle_work(State(engine): State<AppEngine>) -> impl IntoRes
     RenderHtml(Key("work".to_owned()), engine, model)
 }
 
-pub(crate) async fn handle_get_flobals(
+pub(crate) async fn handle_get_globals(
     State(data_model): State<Arc<Mutex<DataModel>>>,
 ) -> impl IntoResponse {
     let data_model = data_model.lock().await;
@@ -66,100 +66,106 @@ pub(crate) async fn handle_set_globals(
 pub(crate) async fn handle_generate_report_excel(
     State(data_model): State<Arc<Mutex<DataModel>>>,
 ) -> impl IntoResponse {
-    /*
     use super::into_body::IntoBody;
 
-    const ROW_OFFSET: usize = 12;
+    const SHEET_NAME: &str = "report";
     let report_template_xlsx = include_bytes!("report.xlsx");
 
     if let Ok(mut book) =
         umya_spreadsheet::reader::xlsx::read_reader(Cursor::new(report_template_xlsx), true)
     {
-        let sheet = book.get_sheet_by_name_mut("report").unwrap();
+        // Fill header
+        let filename = {
+            let sheet = book.get_sheet_by_name_mut(SHEET_NAME).unwrap();
+            let guard = data_model.lock().await;
 
-        {
-            // date
-            use chrono::{DateTime, Local};
+            // Испытания
+            sheet
+                .get_cell_value_mut("D1")
+                .set_value(guard.data_type.clone());
 
-            let system_time = SystemTime::now();
-            let datetime: DateTime<Local> = system_time.into();
-            let date = datetime.format("%d.%m.%Y %T").to_string();
-            let time = datetime.format("%T").to_string();
-            sheet.get_cell_value_mut("F2").set_value(date);
-            sheet.get_cell_value_mut("G2").set_value(time);
-        }
+            // Маршрутный лист №
+            sheet
+                .get_cell_value_mut("D2")
+                .set_value(guard.route_id.clone());
 
-        // Обозначение партии
-        sheet.get_cell_value_mut("C4").set_value(part_id.clone());
+            // Температура
+            sheet.get_cell_value_mut("D3").set_value(
+                guard
+                    .ambient_temperature_range
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+            );
 
-        // Диопазон
-        let (freq_target, work_offset_hz, working_offset_ppm) = {
-            let guard = freqmeter_config.lock().await;
-            (
-                guard.target_freq,
-                guard.work_offset_hz,
-                guard.working_offset_ppm,
+            // Комментарий
+            sheet
+                .get_cell_value_mut("B5")
+                .set_value(guard.comment.clone());
+
+            // Дата
+            sheet
+                .get_cell_value_mut("C7")
+                .set_value(guard.timestamp.format("%d.%m.%Y").to_string());
+
+            format!(
+                "{data_type}@{date}",
+                data_type = &guard.data_type,
+                date = guard.timestamp.format("%Y-%m-%d").to_string()
             )
         };
 
-        sheet
-            .get_cell_value_mut("C7")
-            .set_value(format2digits(freq_target));
+        // Fill table
+        {
+            use umya_spreadsheet::{helper::coordinate::CellCoordinates, Border, Color, Worksheet};
 
-        // ppm
-        sheet
-            .get_cell_value_mut("E7")
-            .set_value(format2digits(working_offset_ppm));
+            fn set_borders<T: Into<CellCoordinates>>(sheet: &mut Worksheet, coordinate: T) {
+                let borders = sheet.get_style_mut(coordinate).get_borders_mut();
+                let mut style = Border::default();
+                style.get_color_mut().set_argb(Color::COLOR_BLACK);
+                style.set_border_style(Border::BORDER_THIN);
 
-        // min-max
-        let limits = Limits::from_config(freq_target, &config, working_offset_ppm);
-        sheet
-            .get_cell_value_mut("G7")
-            .set_value(format2digits(limits.lower_limit));
-        sheet
-            .get_cell_value_mut("H7")
-            .set_value(format2digits(limits.upper_limit));
-
-        // поправка частотомера
-        sheet
-            .get_cell_value_mut("C8")
-            .set_value(format2digits(work_offset_hz));
-
-        // таблица
-        let report = auto_adjust_all_ctrl.lock().await.get_status();
-        if !report.rezonator_info.is_empty() {
-            for (i, r) in report.rezonator_info.iter().enumerate() {
-                let row = ROW_OFFSET + i; // row in table
-
-                let current_freq = r.current_freq;
-                sheet
-                    .get_cell_value_mut(format!("C{row}"))
-                    .set_value(format2digits(current_freq));
-
-                let start = format2digits(r.initial_freq);
-                sheet.get_cell_value_mut(format!("B{row}")).set_value(start);
-
-                let ppm = format2digits(limits.ppm(current_freq));
-                sheet.get_cell_value_mut(format!("D{row}")).set_value(ppm);
-
-                let ok = limits.to_status_icon(current_freq).to_owned();
-                sheet.get_cell_value_mut(format!("E{row}")).set_value(ok);
+                borders.set_bottom(style.clone());
+                borders.set_top(style.clone());
+                borders.set_left(style.clone());
+                borders.set_right(style);
             }
-        } else {
-            // clear table
-            for row in ROW_OFFSET..ROW_OFFSET + config.resonator_placement.len() {
-                for col in ['B', 'C', 'D', 'E'] {
+
+            let resonators = data_model.lock().await.resonators.clone();
+
+            if !resonators.is_empty() {
+                book.insert_new_row(SHEET_NAME, &9, &(resonators.len() as u32));
+
+                let sheet = book.get_sheet_by_name_mut(SHEET_NAME).unwrap();
+
+                resonators.iter().enumerate().for_each(|(i, row)| {
+                    let row_num = 9 + i as u32;
+
                     sheet
-                        .get_cell_value_mut(format!("{col}{row}"))
-                        .set_value("-");
-                }
+                        .get_cell_value_mut((2, row_num))
+                        .set_value_number(i as u32 + 1);
+                    set_borders(sheet, (2, row_num));
+                    sheet
+                        .get_cell_value_mut((3, row_num))
+                        .set_value_number(row.frequency);
+                    set_borders(sheet, (3, row_num));
+                    sheet
+                        .get_cell_value_mut((4, row_num))
+                        .set_value_number(row.rk);
+                    set_borders(sheet, (4, row_num));
+                    sheet
+                        .get_cell_value_mut((5, row_num))
+                        .set_value_string(&row.comment);
+                    set_borders(sheet, (5, row_num));
+                });
             }
         }
 
         let mut buf = vec![];
         match umya_spreadsheet::writer::xlsx::write_writer(&book, Cursor::new(&mut buf)) {
             Ok(_) => {
-                let filename = format!("attachment; filename=\"{}\".xlsx", part_id);
+                let filename = format!("attachment; filename=\"{}\".xlsx", filename);
                 let headers = [
                     (
                         axum::http::header::CONTENT_TYPE,
@@ -181,8 +187,6 @@ pub(crate) async fn handle_generate_report_excel(
         )
             .into_response()
     }
-    */
-    (StatusCode::INTERNAL_SERVER_ERROR, "Not implemented").into_response()
 }
 
 pub(crate) async fn handler_reset_globals(

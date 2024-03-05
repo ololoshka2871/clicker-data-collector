@@ -55,7 +55,7 @@ $(() => {
         responsive: true,
         notFoundText: 'Нет измерений',
         columns: [
-            { field: 'id', title: '№', width: 45, editor: true, type: 'number', priority: 1 },
+            { field: 'id', title: '№', width: 45, type: 'number', priority: 1 },
             { field: 'F', title: 'F, Гц', width: 90, decimalDigits: 2, priority: 2 },
             { field: 'Rk', title: 'Rk, кОм', width: 90, decimalDigits: 1, priority: 2 },
             { field: 'Comment', title: 'Комментарий', editor: true, type: 'text', priority: 0 },
@@ -66,7 +66,7 @@ $(() => {
                 $('<button type="button" class="btn btn-secondary" onclick="reset_session()"><i class="far fa-sticky-note"></i> Сброс</button>')
             ],
             rightControls: [
-                $('<button type="button" class="btn btn-primary" onclick="add_res"><i class="fas fa-plus"></i> Добавить</button>')
+                $('<button type="button" class="btn btn-primary" onclick="add_res()"><i class="fas fa-plus"></i> Добавить</button>')
             ]
         },
         inlineEditing: {
@@ -77,7 +77,11 @@ $(() => {
                 // Эта штука нужна чтобы получить "element_data" в методах ниже
                 fetchElementData: function ($rowElem) {
                     var rowId = $rowElem.attr('data-position');
-                    return parseInt(rowId);
+                    try {
+                        return parseInt(rowId);
+                    } catch {
+                        return 0;
+                    }
                 },
 
                 actionsGroups: [
@@ -90,27 +94,51 @@ $(() => {
                     ReMeasure: {
                         name: 'Снять заново',
                         iconClass: 'fa-solid fa-redo',
-                        onClick: (element_data) => {
-                            console.log('re-measure' + element_data);
+                        onClick: (row_id) => {
+                            console.log(`re-measure ${row_id}`);
+                            add_res(row_id);
                         }
                     },
                     RemoveRow: {
                         name: 'Удалить',
                         iconClass: 'fas fa-trash',
-                        onClick: (element_data) => {
-                            console.log('remove' + element_data);
+                        onClick: (row_id) => {
+                            if (confirm(`Удалить измерение №${row_id}`)) {
+                                grid.removeRow(row_id);
+                                console.log(`remove ${row_id}`);
+                            }
                         }
                     },
                     InsertBefore: {
                         name: 'Вставить перед',
                         iconClass: 'fas fa-plus',
-                        onClick: (element_data) => {
-                            console.log('insert before' + element_data);
+                        onClick: (row_id) => {
+                            console.log(`insert before ${row_id}`);
+                            add_res(row_id - 1, true);
                         }
                     }
                 }
             });
-        }
+        },
+    }).on('rowRemoving', (e, $row, id, record: IResonatorData) => {
+        console.log('row removing', e, $row, id, record);
+        $.ajax({
+            url: `/Measurements/${id}`,
+            method: 'DELETE',
+            success: () => {
+                noty_success(`Измерение №${id} удалено.`);
+            },
+            error: (err) => {
+                noty_error(err.responseText || err.statusText);
+            },
+        });
+    }).on('cellDataChanged', (_e, _$cell, column, record: IResonatorData, newValue: string) => {
+        console.log(`cell row=${record.id} comment to "${newValue}"`);
+        $.ajax({
+            url: `/Measurements/${record.id}`,
+            method: 'PUT',
+            data: newValue,
+        });
     });
 
     // hotkeys
@@ -214,10 +242,27 @@ $(() => {
                 error: (err) => {
                     noty_error(err.responseText || err.statusText);
                 },
+            }).then(() => {
+                var link = document.createElement("a");
+                // If you don't know the name or want to use
+                // the webserver default set name = ''
+                //link.setAttribute('download', "report.xlsx");
+                link.href = '/report';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
             });
         }
     });
 
+    reload_global();
+
+    $('#btnCancel').on('click', function () {
+        dialog.close();
+    });
+});
+
+function reload_global() {
     $.ajax({
         url: '/global',
         method: 'GET',
@@ -230,11 +275,7 @@ $(() => {
             $('#date').val(data.date);
         }
     });
-
-    $('#btnCancel').on('click', function () {
-        dialog.close();
-    });
-});
+}
 
 function start_updater(chart: Chart) {
     oboe('/state')
@@ -259,6 +300,7 @@ function reset_session() {
         method: 'DELETE',
         success: () => {
             grid && grid.reload();
+            reload_global();
             noty_success('Сессия сброшена.');
         },
         error: (err) => {
@@ -267,18 +309,25 @@ function reset_session() {
     });
 }
 
-function add_res() {   
-    /* 
-    $.ajax({
-        url: '/Measurements',
+function add_res(id?: number, insertBefore: boolean = false) {
+    var config: JQuery.AjaxSettings = {
         method: 'POST',
-        success: () => {
-            grid && grid.reload();
-            noty_success('Запись добавлена.');
+        dataType: 'text',
+        success: (data: string) => {
+            noty_success(`Добавлен резонатор № ${data}`);
+            grid.reload();
+            //start_measure(data.id);
         },
         error: (err) => {
             noty_error(err.responseText || err.statusText);
-        },
-    });
-    */
+        }
+    }
+
+    if (id === undefined) {
+        config.url = '/Measurements';
+    } else {
+        config.url = `/Measurements/${id}`,
+            config.data = insertBefore.toString();
+    }
+    $.ajax(config);
 }

@@ -93,8 +93,13 @@ async fn main() -> Result<(), std::io::Error> {
     // Build our application with some routes
     let app = Router::new()
         .route("/", get(|| async { Redirect::permanent("/work") }))
-        .route("/work", get(handle_work))
-        .route("/global", get(handle_get_flobals).put(handle_set_globals).delete(handler_reset_globals))
+        .route("/work", get(handle_get_work))
+        .route(
+            "/global",
+            get(handle_get_globals)
+                .put(handle_set_globals)
+                .delete(handler_reset_globals),
+        )
         .route("/report", get(handle_generate_report_excel))
         .route("/config", get(handle_config).patch(handle_update_config))
         //.route("/config-and-save", patch(handle_config_and_save))
@@ -103,11 +108,13 @@ async fn main() -> Result<(), std::io::Error> {
         // rest_api
         .route(
             "/Measurements",
-            get(handle_measurements_get).post(handle_measurements_post),
+            get(handle_measurements_get).post(handle_measurements_append),
         )
         .route(
             "/Measurements/:id",
-            put(handle_measurements_put).delete(handle_measurements_delete),
+            put(handle_measurements_put)
+                .post(handle_measurements_insert)
+                .delete(handle_measurements_delete),
         )
         .with_state(app_state)
         // Using tower to add tracing layer
@@ -123,19 +130,22 @@ async fn main() -> Result<(), std::io::Error> {
 }
 
 fn generate_fake_data(dm: &mut DataModel) {
+    for _ in 1..=3 {
+        dm.resonators.push(generate_fake_res_data());
+    }
+}
+
+pub(crate) fn generate_fake_res_data() -> clicker_data_collector::data_model::ResonatorData {
     use rand::Rng;
 
     let mut rng = rand::thread_rng();
-    for i in 1..=10 {
-        let freq = 32760.0 + rng.gen_range(-10.0..10.0);
-        let rk = rng.gen_range(20.0..100.0);
-        dm.resonators
-            .push(clicker_data_collector::data_model::ResonatorData {
-                id: i,
-                timestamp: chrono::Local::now(),
-                frequency: freq,
-                rk,
-                comment: String::new(),
-            });
+
+    let freq = 32760.0 + rng.gen_range(-10.0..10.0);
+    let rk = rng.gen_range(20.0..100.0);
+    clicker_data_collector::data_model::ResonatorData {
+        timestamp: chrono::Local::now(),
+        frequency: freq,
+        rk,
+        comment: String::new(),
     }
 }

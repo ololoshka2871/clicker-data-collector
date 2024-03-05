@@ -2,9 +2,8 @@ use std::vec;
 
 use chrono::{DateTime, Local};
 
+#[derive(Clone)]
 pub struct ResonatorData {
-    ///! Номер резонатора
-    pub id: u32,
     ///! Время снятия данных
     pub timestamp: DateTime<Local>,
     ///! Частота
