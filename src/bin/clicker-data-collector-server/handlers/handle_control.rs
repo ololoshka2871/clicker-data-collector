@@ -184,7 +184,7 @@ pub(crate) async fn handle_measurements_put(
         .lock()
         .await
         .resonators
-        .get_mut(id as usize)
+        .get_mut(id as usize - 1)
         .map(|r| r.comment = body)
     {
         None => StatusCode::NOT_FOUND,
