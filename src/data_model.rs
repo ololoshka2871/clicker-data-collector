@@ -12,10 +12,14 @@ pub struct ResonatorData {
     pub frequency: f32,
     ///! Отклонение частоты
     pub frequency_deviation: f32,
+    ///! Значния частоты
+    pub freqs: Vec<f32>,
     ///! Динамическое сопротивление
     pub rk: f32,
     ///! Отклонение динамического сопротивления
     pub rk_deviation: f32,
+    ///! Значения динамического сопротивления
+    pub rks: Vec<f32>,
     ///! Коментарий
     pub comment: String,
 }
@@ -57,9 +61,11 @@ impl From<MeasureProcessStat> for ResonatorData {
             timestamp,
             frequency: freqs_avg.median(),
             frequency_deviation: freqs_avg.iqr(),
+            freqs: stat.freqs,
             rk: rks_avg.median(),
             rk_deviation: rks_avg.iqr(),
             comment: String::new(),
+            rks: stat.rks,
         }
     }
 }

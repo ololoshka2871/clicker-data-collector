@@ -31,8 +31,10 @@ pub(crate) async fn handle_measurements_get(
         timestamp: String,
         F: f32,
         F_deviation: f32,
+        Freqs: Vec<f32>,
         Rk: f32,
         Rk_deviation: f32,
+        Rks: Vec<f32>,
         Comment: String,
     }
 
@@ -44,8 +46,10 @@ pub(crate) async fn handle_measurements_get(
                 timestamp: format!("/Date({})/", data.timestamp.timestamp_millis()),
                 F: data.frequency,
                 F_deviation: data.frequency_deviation,
+                Freqs: data.freqs.clone(),
                 Rk: data.rk,
                 Rk_deviation: data.rk_deviation,
+                Rks: data.rks.clone(),
                 Comment: data.comment.clone(),
             }
         }

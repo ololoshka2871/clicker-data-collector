@@ -13,8 +13,10 @@ interface IResonatorData {
     timestamp: string,
     F: number,
     F_deviation: number,
+    Freqs: Array<number>,
     Rk: number,
     Rk_deviation: number,
+    Rks: Array<number>,
     comment: String,
 }
 
@@ -64,13 +66,14 @@ $(() => {
     // 2. https://gijgo.com/grid/demos/bootstrap-grid-inline-edit : Inline edit
     // 3. https://gijgo.com/grid/demos/bootstrap-4-table : Delete
     // 4. https://stackoverflow.com/a/37286676 : background color
+    // 5. https://gijgo.com/grid/demos/nested-jquery-grids : Details template and render it
     grid = $('#grid').grid({
         uiLibrary: 'bootstrap4',
         dataSource: '/Measurements',
         primaryKey: 'id',
         iconsLibrary: 'fontawesome',
-        detailTemplate: '<div></div>',
-        showHiddenColumnsAsDetails: true,
+        detailTemplate: '<div></dev>',
+        showHiddenColumnsAsDetails: false,
         responsive: true,
         notFoundText: 'Нет измерений',
         columns: [
@@ -79,8 +82,10 @@ $(() => {
             { field: 'Rk', title: 'Rk, кОм', width: 90, decimalDigits: 1, priority: 2 },
             { field: 'Comment', title: 'Комментарий', editor: true, type: 'text', priority: 0 },
             { field: 'timestamp', title: 'Снято в', hidden: true, type: 'date', format: 'HH:MM:ss' },
-            { field: 'F_deviation', title: 'ΔF, Гц', hidden: true, type: 'number', priority: 0, decimalDigits: 2 },
-            { field: 'Rk_deviation', title: 'ΔRk, кОм', hidden: true, type: 'number', priority: 0, decimalDigits: 1 },
+            //{ field: 'F_deviation', title: 'ΔF, Гц', hidden: true, type: 'number', priority: 0, decimalDigits: 2 },
+            //{ title: '', tmpl: '<canvas width="100" height="100" target="{id}" role="F_deviation"></canvas>', width: 100, hidden: true },
+            //{ field: 'Rk_deviation', title: 'ΔRk, кОм', hidden: true, type: 'number', priority: 0, decimalDigits: 1 },
+            //{ title: '', tmpl: '<canvas width="100" height="100" target="{id}" role="Rk_deviation"></canvas>', width: 100, hidden: true }
         ],
         pager: {
             leftControls: [
@@ -168,6 +173,69 @@ $(() => {
             url: `/Measurements/${record.id}`,
             method: 'PUT',
             data: newValue,
+        });
+    }).on('detailExpand', (_e, $detailWrapper: JQuery<HTMLDivElement>, id: string) => {
+        const record: IResonatorData = grid.getById(id);
+        const width = $detailWrapper.width();
+
+        const f_canvas: JQuery<HTMLCanvasElement> = $(`<canvas height="50" width="${width}"/>`);
+        const rk_canvas: JQuery<HTMLCanvasElement> = $(`<canvas height="50" width="${width}"/>`);
+
+        $detailWrapper
+            .html(`<b>Снято в</b>: ${record.timestamp}`)
+            .append('<hr/>')
+            .append(`<b>Разброс частоты</b>: ${round_to_2_digits(record.F_deviation)} Гц`)
+            .append(f_canvas)
+            .append('<hr/>')
+            .append(`<b>Разброс Rk</b>: ${round_to_2_digits(record.Rk_deviation)} кОм`)
+            .append(rk_canvas);
+
+        new Chart(f_canvas, {
+            type: 'horizontalBoxplot',
+            data: {
+                datasets: [{
+                    label: 'F',
+                    backgroundColor: 'rgba(0, 191, 255,0.5)',
+                    borderColor: 'rgb(0, 128, 255)',
+                    borderWidth: 1,
+                    data: [record.Freqs],
+                    itemRadius: 3,
+                    itemBorderColor: 'black',
+                }]
+            },
+            options: {
+                tooltips: { enabled: false },
+                responsive: false,
+                title: {
+                    display: false,
+                    text: 'Разброс частоты'
+                },
+                legend: { display: false },
+            }
+        });
+
+        new Chart(rk_canvas, {
+            type: 'horizontalBoxplot',
+            data: {
+                datasets: [{
+                    label: 'Rk',
+                    backgroundColor: 'rgba(255, 0, 64, 0.5)',
+                    borderColor: 'rgb(255, 0, 0)',
+                    borderWidth: 1,
+                    data: [record.Rks],
+                    itemRadius: 3,
+                    itemBorderColor: 'black',
+                }]
+            },
+            options: {
+                tooltips: { enabled: false },
+                responsive: false,
+                title: {
+                    display: false,
+                    text: 'Разброс Rk'
+                },
+                legend: { display: false },
+            }
         });
     });
 
@@ -355,6 +423,20 @@ function add_res(id?: number, insertBefore: boolean = false) {
         config.body = insertBefore.toString();
     }
 
+    const empty_text = '---';
+    
+    const freq_disp = $('#current-freq-display');
+    const rk_disp = $('#current-rk-display');
+
+    freq_disp.text(empty_text);
+    rk_disp.text(empty_text);
+
+    const freq_iqr_display = $('#current-freq-iqr-display');
+    const rk_iqr_display = $('#current-rk-iqr-display');
+
+    freq_iqr_display.text(empty_text);
+    rk_iqr_display.text(empty_text)
+
     MPdailog.open('Измерение');
     oboe(config)
         .done((data: IMeasureProcessStat) => {
@@ -373,19 +455,19 @@ function add_res(id?: number, insertBefore: boolean = false) {
             }
 
             if (data.state == "Running") {
-                const freq_disp = $('#current-freq-display');
+                
                 if (data.freqs.length > 0) {
                     freq_disp.text(round_to_2_digits(data.freqs.pop()))
-                    $('#current-freq-iqr-display')
+                    freq_iqr_display
                         .text(`${round_to_2_digits(data.freqs_avg.median)} ±${round_to_2_digits(data.freqs_avg.iqr)}`);
                 } else {
                     freq_disp.text('---');
                 }
 
-                const rk_disp = $('#current-rk-display');
+                
                 if (data.rks.length > 0) {
                     rk_disp.text(round_to_2_digits(data.rks.pop()));
-                    $('#current-rk-iqr-display')
+                    rk_iqr_display
                         .text(`${round_to_2_digits(data.rks_avg.median)} ±${round_to_2_digits(data.rks_avg.iqr)}`);
                 } else {
                     rk_disp.text('---');

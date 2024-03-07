@@ -88,7 +88,6 @@ async fn main() -> Result<(), std::io::Error> {
     let web_port = config.web_port;
 
     let data_model = DataModel::default();
-    //generate_fake_data(&mut data_model);
 
     let app_state = AppState {
         engine: Engine::from(minijinja),
@@ -138,28 +137,4 @@ async fn main() -> Result<(), std::io::Error> {
 
     tracing::info!("Listening on {}", addr);
     axum_server::bind(addr).serve(app.into_make_service()).await
-}
-
-#[allow(dead_code)]
-fn generate_fake_data(dm: &mut DataModel) {
-    for _ in 1..=3 {
-        dm.resonators.push(generate_fake_res_data());
-    }
-}
-
-pub(crate) fn generate_fake_res_data() -> clicker_data_collector::data_model::ResonatorData {
-    use rand::Rng;
-
-    let mut rng = rand::thread_rng();
-
-    let freq = 32760.0 + rng.gen_range(-10.0..10.0);
-    let rk = rng.gen_range(20.0..100.0);
-    clicker_data_collector::data_model::ResonatorData {
-        timestamp: chrono::Local::now(),
-        frequency: freq,
-        rk,
-        comment: String::new(),
-        frequency_deviation: 0.0,
-        rk_deviation: 0.0,
-    }
 }

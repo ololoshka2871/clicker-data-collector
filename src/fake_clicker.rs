@@ -1,5 +1,8 @@
 use std::time::{Duration, SystemTime};
 
+use rand::distributions::Distribution;
+use rand_distr::Normal;
+
 use crate::clicker_interface::ClickerInterface;
 
 #[derive(Debug)]
@@ -8,15 +11,12 @@ pub struct NoError;
 pub struct FakeClicker {
     initial: SystemTime,
     switch_duration: Duration,
+    distribution_f: Normal<f32>,
+    distribution_rk: Normal<f32>,
 }
 
 impl ClickerInterface<NoError> for FakeClicker {
     async fn read(&mut self) -> Result<crate::clicker_interface::MeasureResult, NoError> {
-        use rand::Rng;
-
-        const FREQ_CENTER: f32 = 32760.0;
-        const RK_MIN: f32 = 20.0;
-
         let mut rng = rand::thread_rng();
 
         if SystemTime::now()
@@ -28,11 +28,11 @@ impl ClickerInterface<NoError> for FakeClicker {
             == 0
         {
             Ok(crate::clicker_interface::MeasureResult::Rk(
-                RK_MIN + rng.gen_range(-10.0..10.0),
+                self.distribution_rk.sample(&mut rng),
             ))
         } else {
             Ok(crate::clicker_interface::MeasureResult::Freq(
-                FREQ_CENTER + rng.gen_range(0.0..100.0),
+                self.distribution_f.sample(&mut rng),
             ))
         }
     }
@@ -40,9 +40,14 @@ impl ClickerInterface<NoError> for FakeClicker {
 
 impl FakeClicker {
     pub fn new(switch_duration: Duration) -> Self {
+        const FREQ_CENTER: f32 = 32760.0;
+        const RK_CENTER: f32 = 50.0;
+
         Self {
             initial: SystemTime::now(),
             switch_duration,
+            distribution_f: Normal::new(FREQ_CENTER, 5.0).unwrap(),
+            distribution_rk: Normal::new(RK_CENTER, 10.0).unwrap(),
         }
     }
 }
