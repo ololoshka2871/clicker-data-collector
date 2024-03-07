@@ -1,9 +1,9 @@
-use std::{borrow::BorrowMut, io::Cursor, sync::Arc, time::SystemTime};
+use std::{borrow::BorrowMut, io::Cursor, sync::Arc};
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum_template::{Key, RenderHtml};
 
-use chrono::{DateTime, Local};
+use chrono::Local;
 use clicker_data_collector::data_model::DataModel;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;

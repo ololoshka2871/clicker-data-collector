@@ -118,7 +118,12 @@ body {
 }
 
 .freq-display {
-    font-size: 4em;
+    font-size: 3em;
+    font-weight: bold;
+}
+
+.avg-display {
+    font-size: 1.5em;
     font-weight: bold;
 }
 

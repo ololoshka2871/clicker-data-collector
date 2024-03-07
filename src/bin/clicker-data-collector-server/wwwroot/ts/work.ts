@@ -16,8 +16,24 @@ interface IResonatorData {
     comment: String,
 }
 
-interface IState {
-    // TODO
+interface IBoxPlot {
+    median: number,
+    q1: number,
+    q3: number,
+    iqr: number,
+    lower_bound: number,
+    upper_bound: number,
+}
+
+interface IMeasureProcessStat {
+    timestamp: number,
+    state: string,
+
+    freqs: Array<number>,
+    rks: Array<number>,
+
+    freqs_avg?: IBoxPlot,
+    rks_avg?: IBoxPlot,
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -31,6 +47,7 @@ const schema = joi.object({
 
 let present_noty: Noty = null;
 let grid: Types.Grid<any, any> = null;
+let MPdailog: Types.Dialog = null;
 
 // on page loaded jquery
 $(() => {
@@ -165,6 +182,14 @@ $(() => {
         width: 360,
     });
 
+    MPdailog = $('#MPdailog').dialog({
+        uiLibrary: 'bootstrap4',
+        autoOpen: false,
+        resizable: false,
+        modal: true,
+        width: 360,
+    });
+
     $('#gen-report').on('click', (ev) => {
         $('#id').val('');
         $('#Name').val('');
@@ -174,6 +199,8 @@ $(() => {
 
         ev.preventDefault();
     });
+
+    $('#cancel_measure').on('click', cancel_measure);
 
     $('#btnSubmit').on('click', (e) => {
         // prevent form submission
@@ -277,13 +304,6 @@ function reload_global() {
     });
 }
 
-function start_updater(chart: Chart) {
-    oboe('/state')
-        .done((state: IState) => {
-
-        })
-}
-
 function validate(dataObject) {
     const result = schema.validate(
         {
@@ -310,25 +330,64 @@ function reset_session() {
 }
 
 function add_res(id?: number, insertBefore: boolean = false) {
-    var config: JQuery.AjaxSettings = {
+    var config: oboe.Options = {
+        url: '',
         method: 'POST',
-        dataType: 'text',
-        success: (data: string) => {
-            noty_success(`Добавлен резонатор № ${data}`);
-            grid.reload();
-            //start_measure(data.id);
-        },
-        error: (err) => {
-            noty_error(err.responseText || err.statusText);
-        }
-    }
+    };
 
     if (id === undefined) {
         config.url = '/Measurements';
     } else {
         config.url = `/Measurements/${id}`;
-        config.data = insertBefore.toString();
+        config.body = insertBefore.toString();
     }
 
-    $.ajax(config);
+    MPdailog.open('Измерение');
+    oboe(config)
+        .done((data: IMeasureProcessStat) => {
+            console.log(data);
+            if (data.state == "Finished") {
+                noty_success("Измерение завершено");
+                MPdailog.close();
+                grid.reload();
+            }
+            if (data.state == "Interrupted") {
+                noty({
+                    type: 'warning',
+                    text: '<i class="fas fa-heart-broken"></i> Измерение отменено',
+                    timeout: 3000
+                });
+                MPdailog.close();
+            }
+
+            if (data.state == "Running") {
+                const freq_disp = $('#current-freq-display');
+                if (data.freqs.length > 0) {
+                    freq_disp.text(round_to_2_digits(data.freqs.pop()))
+                    $('#current-freq-iqr-display')
+                        .text(`${round_to_2_digits(data.freqs_avg.median)} ±${round_to_2_digits(data.freqs_avg.iqr)}`);
+                } else {
+                    freq_disp.text('---');
+                }
+
+                const rk_disp = $('#current-rk-display');
+                if (data.rks.length > 0) {
+                    rk_disp.text(round_to_2_digits(data.rks.pop()));
+                    $('#current-rk-iqr-display')
+                        .text(`${round_to_2_digits(data.rks_avg.median)} ±${round_to_2_digits(data.rks_avg.iqr)}`);
+                } else {
+                    rk_disp.text('---');
+                }
+            }
+        }).fail((err: oboe.FailReason) => {
+            noty_error(err.body || err.statusCode.toString());
+            MPdailog.close();
+        });
+}
+
+function cancel_measure() {
+    $.ajax({
+        url: '/Measurements',
+        method: 'DELETE'
+    });
 }

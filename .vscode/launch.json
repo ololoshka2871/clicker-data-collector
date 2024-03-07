@@ -11,7 +11,7 @@
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {
-                "RUST_LOG": "clicker_data_collector_server=trace,clicker_data_collector=debug",
+                "RUST_LOG": "clicker_data_collector_server=trace,clicker_data_collector=trace",
             },
             "cargo": {
                 "args": [

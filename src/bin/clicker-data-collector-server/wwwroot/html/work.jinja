@@ -90,6 +90,34 @@
         </div>
     </div>
 
+    <div id="MPdailog" style="display: none;">
+        <div data-role="body">
+            <div class="bd-callout bd-callout-info">
+                <h4>Частота, Гц</h4>
+                <div id="current-freq-display-bg" data-toggle="tooltip"
+                    title="Текущая частота">
+                    <span class="seven-segment-font freq-display text-info" id="current-freq-display">---<span>
+                </div>
+                <div data-toggle="tooltip" title="Среднее отклонение частоты">
+                    <span class="seven-segment-font avg-display text-secondary" id="current-freq-iqr-display">---<span>
+                </div>
+            </div>
+            <div class="bd-callout bd-callout-danger">
+                <h4>Сопротивление, кОм</h4>
+                <div id="current-freq-display-bg" data-toggle="tooltip"
+                    title="Текущее сопростивление">
+                    <span class="seven-segment-font freq-display text-danger" id="current-rk-display">---<span>
+                </div>
+                <div data-toggle="tooltip" title="Среднее отклонение Rk">
+                    <span class="seven-segment-font avg-display text-secondary" id="current-rk-iqr-display">---<span>
+                </div>
+            </div>
+        </div>
+        <div data-role="footer">
+            <button type="button" id="cancel_measure" class="btn btn-danger">Отмена</button>
+        </div>
+    </div>
+
     <!-- Common scripts -->
     <script src="/lib/jquery/jquery.min.js"></script>
     <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>

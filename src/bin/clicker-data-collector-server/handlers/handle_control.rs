@@ -7,9 +7,11 @@ use axum::{
     Json,
 };
 
-use clicker_data_collector::data_model::{DataModel, ResonatorData};
+use clicker_data_collector::{
+    data_model::{DataModel, ResonatorData},
+    ClickerController,
+};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use tokio::sync::Mutex;
 
 use crate::generate_fake_res_data;
@@ -64,43 +66,107 @@ pub(crate) async fn handle_measurements_get(
     })
 }
 
+async fn measure_common<F: Fn(&mut DataModel) + Send + 'static>(
+    data_model: Arc<Mutex<DataModel>>,
+    clicker_ctrl: Arc<Mutex<ClickerController>>,
+    after_measure: F,
+) -> axum::response::Response {
+    use clicker_data_collector::{MeasureProcessStat, MeasureProcessState};
+
+    #[derive(Serialize)]
+    struct MeasureStatus {
+        result: String,
+        data: MeasureProcessStat,
+    }
+
+    let rx = {
+        let mut guard = clicker_ctrl.lock().await;
+        match guard.start_mesure() {
+            Ok(_) => guard.subscribe_measure_status(),
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
+    };
+
+    match rx {
+        Some(mut rx) => {
+            let stream = async_stream::stream! {
+                loop {
+                    match rx.changed().await {
+                        Ok(_) => {
+                            let res = (*rx.borrow()).clone();
+                            match res.state {
+                                MeasureProcessState::Idle => {
+                                    continue;
+                                }
+                                MeasureProcessState::Running => {
+                                    yield res;
+                                }
+                                MeasureProcessState::Interrupted | MeasureProcessState::Finished => {
+                                    yield res;
+                                    break;
+                                }
+                            }
+
+                        }
+                        Err(_) => return,
+                    }
+                }
+
+                let mut guard = data_model.lock().await;
+                after_measure(&mut guard);
+            };
+            axum_streams::StreamBodyAs::json_nl(stream).into_response()
+        }
+        None => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Не удалось запустить измерительный процесс!",
+        )
+            .into_response(),
+    }
+}
+
 // Начать процедуру измерения нового резонатора
 pub(crate) async fn handle_measurements_append(
     State(data_model): State<Arc<Mutex<DataModel>>>,
+    State(clicker_ctrl): State<Arc<Mutex<ClickerController>>>,
 ) -> impl IntoResponse {
     tracing::debug!("handle_measurements_add");
 
-    let mut guard = data_model.lock().await;
-    let new_id = guard.resonators.len() as u32 + 1;
+    let after_measure = |data_model: &mut DataModel| {
+        data_model.resonators.push(generate_fake_res_data());
+    };
 
-    guard.resonators.push(generate_fake_res_data());
-
-    (StatusCode::OK, new_id.to_string()).into_response()
+    measure_common(data_model, clicker_ctrl, after_measure).await
 }
 
 pub(crate) async fn handle_measurements_insert(
     State(data_model): State<Arc<Mutex<DataModel>>>,
+    State(clicker_ctrl): State<Arc<Mutex<ClickerController>>>,
     Path(id): Path<u32>,
     body: String,
 ) -> impl IntoResponse {
     tracing::debug!("handle_measurements_insert: id={}, insert={}", id, body);
 
-    let mut guard = data_model.lock().await;
-    let new_res = generate_fake_res_data();
-    let id = id.saturating_sub(1);
-
-    let new_id = if body.to_uppercase() == "TRUE" {
-        guard.resonators.insert(id as usize, new_res);
-        id + 1
-    } else {
-        match guard.resonators.get_mut(id as usize) {
-            None => return StatusCode::NOT_FOUND.into_response(),
-            Some(r) => *r = new_res,
-        };
+    let insert = body.to_uppercase() == "TRUE";
+    let id = {
+        let id = id.saturating_sub(1);
+        if id as usize > data_model.lock().await.resonators.len() {
+            return StatusCode::NOT_FOUND.into_response();
+        }
         id
     };
 
-    (StatusCode::OK, new_id.to_string()).into_response()
+    let after_measure = move |data_model: &mut DataModel| {
+        let new_res = generate_fake_res_data();
+
+        if insert {
+            data_model.resonators.insert(id as usize, new_res);
+        } else {
+            data_model.resonators[id as usize] = new_res;
+        }
+    };
+
+    measure_common(data_model, clicker_ctrl, after_measure).await
 }
 
 // Перезапустить измерение существующего резонатора id
@@ -140,4 +206,15 @@ pub(crate) async fn handle_measurements_delete(
         guard.resonators.remove(id as usize);
         StatusCode::OK
     }
+}
+
+// Удалить резонатор id
+pub(crate) async fn handle_measurements_cancel(
+    State(clicker_ctrl): State<Arc<Mutex<ClickerController>>>,
+) -> impl IntoResponse {
+    tracing::debug!("handle_measurements_cancel");
+
+    clicker_ctrl.lock().await.interrupt_mesure().await;
+
+    StatusCode::OK
 }
