@@ -9,12 +9,10 @@ use axum::{
 
 use clicker_data_collector::{
     data_model::{DataModel, ResonatorData},
-    ClickerController,
+    ClickerController, MeasureProcessStat,
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
-
-use crate::generate_fake_res_data;
 
 // Получить список всех резонаторов
 pub(crate) async fn handle_measurements_get(
@@ -32,7 +30,9 @@ pub(crate) async fn handle_measurements_get(
         id: u32,
         timestamp: String,
         F: f32,
+        F_deviation: f32,
         Rk: f32,
+        Rk_deviation: f32,
         Comment: String,
     }
 
@@ -40,9 +40,12 @@ pub(crate) async fn handle_measurements_get(
         fn from(data: &ResonatorData) -> Self {
             Self {
                 id: 0,
-                timestamp: data.timestamp.to_rfc3339(),
+                // for gijgo grid compability
+                timestamp: format!("/Date({})/", data.timestamp.timestamp_millis()),
                 F: data.frequency,
+                F_deviation: data.frequency_deviation,
                 Rk: data.rk,
+                Rk_deviation: data.rk_deviation,
                 Comment: data.comment.clone(),
             }
         }
@@ -66,12 +69,12 @@ pub(crate) async fn handle_measurements_get(
     })
 }
 
-async fn measure_common<F: Fn(&mut DataModel) + Send + 'static>(
+async fn measure_common<F: Fn(&mut DataModel, MeasureProcessStat) + Send + 'static>(
     data_model: Arc<Mutex<DataModel>>,
     clicker_ctrl: Arc<Mutex<ClickerController>>,
     after_measure: F,
 ) -> axum::response::Response {
-    use clicker_data_collector::{MeasureProcessStat, MeasureProcessState};
+    use clicker_data_collector::MeasureProcessState;
 
     #[derive(Serialize)]
     struct MeasureStatus {
@@ -90,7 +93,7 @@ async fn measure_common<F: Fn(&mut DataModel) + Send + 'static>(
     match rx {
         Some(mut rx) => {
             let stream = async_stream::stream! {
-                loop {
+                let res = loop {
                     match rx.changed().await {
                         Ok(_) => {
                             let res = (*rx.borrow()).clone();
@@ -102,18 +105,18 @@ async fn measure_common<F: Fn(&mut DataModel) + Send + 'static>(
                                     yield res;
                                 }
                                 MeasureProcessState::Interrupted | MeasureProcessState::Finished => {
-                                    yield res;
-                                    break;
+                                    yield res.clone();
+                                    break res;
                                 }
                             }
 
                         }
                         Err(_) => return,
                     }
-                }
+                };
 
                 let mut guard = data_model.lock().await;
-                after_measure(&mut guard);
+                after_measure(&mut guard, res);
             };
             axum_streams::StreamBodyAs::json_nl(stream).into_response()
         }
@@ -132,8 +135,8 @@ pub(crate) async fn handle_measurements_append(
 ) -> impl IntoResponse {
     tracing::debug!("handle_measurements_add");
 
-    let after_measure = |data_model: &mut DataModel| {
-        data_model.resonators.push(generate_fake_res_data());
+    let after_measure = |data_model: &mut DataModel, mr: MeasureProcessStat| {
+        data_model.resonators.push(mr.into());
     };
 
     measure_common(data_model, clicker_ctrl, after_measure).await
@@ -156,8 +159,8 @@ pub(crate) async fn handle_measurements_insert(
         id
     };
 
-    let after_measure = move |data_model: &mut DataModel| {
-        let new_res = generate_fake_res_data();
+    let after_measure = move |data_model: &mut DataModel, mr: MeasureProcessStat| {
+        let new_res = mr.into();
 
         if insert {
             data_model.resonators.insert(id as usize, new_res);

@@ -11,8 +11,10 @@ declare function hotkeys(key: string, callback: (event: KeyboardEvent, handler: 
 interface IResonatorData {
     id: number,
     timestamp: string,
-    frequency: string,
-    rk: string,
+    F: number,
+    F_deviation: number,
+    Rk: number,
+    Rk_deviation: number,
     comment: String,
 }
 
@@ -76,7 +78,9 @@ $(() => {
             { field: 'F', title: 'F, Гц', width: 90, decimalDigits: 2, priority: 2 },
             { field: 'Rk', title: 'Rk, кОм', width: 90, decimalDigits: 1, priority: 2 },
             { field: 'Comment', title: 'Комментарий', editor: true, type: 'text', priority: 0 },
-            { field: 'timestamp', title: 'Снято в:', hidden: true, type: 'date', format: 'HH:mm:ss', priority: 0 },
+            { field: 'timestamp', title: 'Снято в', hidden: true, type: 'date', format: 'HH:MM:ss' },
+            { field: 'F_deviation', title: 'ΔF, Гц', hidden: true, type: 'number', priority: 0, decimalDigits: 2 },
+            { field: 'Rk_deviation', title: 'ΔRk, кОм', hidden: true, type: 'number', priority: 0, decimalDigits: 1 },
         ],
         pager: {
             leftControls: [
@@ -112,6 +116,9 @@ $(() => {
                         name: 'Снять заново',
                         iconClass: 'fa-solid fa-redo',
                         onClick: (row_id) => {
+                            if (isNaN(row_id)) {
+                                return;
+                            }
                             console.log(`re-measure ${row_id}`);
                             add_res(row_id);
                         }
@@ -120,6 +127,9 @@ $(() => {
                         name: 'Удалить',
                         iconClass: 'fas fa-trash',
                         onClick: (row_id) => {
+                            if (isNaN(row_id)) {
+                                return;
+                            }
                             if (confirm(`Удалить измерение №${row_id}`)) {
                                 grid.removeRow(row_id);
                                 console.log(`remove ${row_id}`);
@@ -130,6 +140,9 @@ $(() => {
                         name: 'Вставить перед',
                         iconClass: 'fas fa-plus',
                         onClick: (row_id) => {
+                            if (isNaN(row_id)) {
+                                return;
+                            }
                             console.log(`insert before ${row_id}`);
                             add_res(row_id - 1, true);
                         }
@@ -345,7 +358,6 @@ function add_res(id?: number, insertBefore: boolean = false) {
     MPdailog.open('Измерение');
     oboe(config)
         .done((data: IMeasureProcessStat) => {
-            console.log(data);
             if (data.state == "Finished") {
                 noty_success("Измерение завершено");
                 MPdailog.close();

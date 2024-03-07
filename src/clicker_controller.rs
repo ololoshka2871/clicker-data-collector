@@ -1,11 +1,9 @@
 use std::{
     fmt::Debug,
-    future::IntoFuture,
     sync::Arc,
     time::{Duration, SystemTime},
 };
 
-use futures::future::try_join;
 use serde::Serialize;
 use tokio::sync::{
     watch::{Receiver, Sender},
@@ -183,7 +181,7 @@ async fn read_task<E: Debug + Send, C: ClickerInterface<E>>(
                     timestamp: SystemTime::now(),
                     result,
                 };
-                tracing::trace!("Read from clicker: {:?}", res);
+                //tracing::trace!("Read from clicker: {:?}", res);
                 status_tx.send(res).ok();
             }
             Err(e) => {

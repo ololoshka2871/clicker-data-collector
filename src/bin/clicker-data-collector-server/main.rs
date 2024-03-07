@@ -64,6 +64,13 @@ async fn main() -> Result<(), std::io::Error> {
     tracing::info!("Loading config...");
     let (config, config_file) = clicker_data_collector::Config::load();
 
+    let fake_clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
+    let clicker_ctrl = clicker_data_collector::ClickerController::new(
+        fake_clicker,
+        std::time::Duration::from_millis(250), // интервал опроса
+        3, // цыклов переключения Rk -> Freq -> Rk для получения данных
+    );
+
     tracing::warn!("Testing connection...");
     // todo
 
@@ -80,15 +87,8 @@ async fn main() -> Result<(), std::io::Error> {
 
     let web_port = config.web_port;
 
-    let mut data_model = DataModel::default();
-    generate_fake_data(&mut data_model);
-
-    let fake_clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
-    let clicker_ctrl = clicker_data_collector::ClickerController::new(
-        fake_clicker,
-        std::time::Duration::from_millis(250), // интервал опроса
-        3, // цыклов переключения Rk -> Freq -> Rk для получения данных
-    );
+    let data_model = DataModel::default();
+    //generate_fake_data(&mut data_model);
 
     let app_state = AppState {
         engine: Engine::from(minijinja),
@@ -140,6 +140,7 @@ async fn main() -> Result<(), std::io::Error> {
     axum_server::bind(addr).serve(app.into_make_service()).await
 }
 
+#[allow(dead_code)]
 fn generate_fake_data(dm: &mut DataModel) {
     for _ in 1..=3 {
         dm.resonators.push(generate_fake_res_data());
@@ -158,5 +159,7 @@ pub(crate) fn generate_fake_res_data() -> clicker_data_collector::data_model::Re
         frequency: freq,
         rk,
         comment: String::new(),
+        frequency_deviation: 0.0,
+        rk_deviation: 0.0,
     }
 }
