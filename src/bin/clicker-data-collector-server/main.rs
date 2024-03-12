@@ -63,13 +63,15 @@ async fn main() -> Result<(), std::io::Error> {
 
     tracing::info!("Loading config...");
     let (config, config_file) = clicker_data_collector::Config::load();
+    tracing::info!("Config loaded:\n{}", config);
 
-    //let fake_clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
-
+    let mut clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
+    /*
     let mut clicker = clicker_data_collector::Clicker::new(
         config.rk_meter_port.clone(),
         std::time::Duration::from_millis(250),
     );
+    */
     tracing::warn!("Testing connection...");
     if let Err(e) = clicker.test().await {
         panic!("Failed to connect to clicker: {:?}", e);
@@ -115,7 +117,7 @@ async fn main() -> Result<(), std::io::Error> {
                 .delete(handler_reset_globals),
         )
         .route("/report", get(handle_generate_report_excel))
-        .route("/config", get(handle_config).patch(handle_update_config))
+        .route("/config", get(handle_config).patch(handle_config_and_save))
         //.route("/config-and-save", patch(handle_config_and_save))
         .route("/static/:path/:file", get(static_files::handle_static))
         .route("/lib/*path", get(static_files::handle_lib))

@@ -10,6 +10,10 @@ fn default_web_port() -> u16 {
     3289
 }
 
+fn default_cycles() -> u32 {
+    3
+}
+
 #[derive(Deserialize, Clone, Serialize)]
 pub struct Config {
     #[serde(rename = "RkMeterPort", default = "default_serial_port")]
@@ -17,6 +21,9 @@ pub struct Config {
 
     #[serde(rename = "WebPort", default = "default_web_port")]
     pub web_port: u16,
+
+    #[serde(rename = "Cycles", default = "default_cycles")]
+    pub cycles: u32,
 }
 
 impl Config {
@@ -66,6 +73,8 @@ impl Config {
 impl std::fmt::Display for Config {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "RkMeterPort: {}", self.rk_meter_port)?;
+        writeln!(f, "WebPort: {}", self.web_port)?;
+        writeln!(f, "Cycles: {}", self.cycles)?;
 
         Ok(())
     }

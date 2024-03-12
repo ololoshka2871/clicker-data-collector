@@ -1,6 +1,8 @@
 
 //-----------------------------------------------------------------------------
 
+var notty: Noty | null = null;
+
 // on page loaded jquery
 $(() => {
     $('.adj-input').on('input', (ev) => {
@@ -11,10 +13,14 @@ $(() => {
         var data = {};
         data[parameter] = value;
         $.ajax({
-            url: '/config-and-save',
+            url: '/config',
             method: 'PATCH',
             data: JSON.stringify(data),
             contentType: 'application/json',
+        }).then(() => {
+            if (notty === null || notty.closed) {
+                notty = noty_success('Чтобы установки вступили в силу, небхожимо перезапустить приложение.');
+            }
         });
     });
 });

@@ -50,4 +50,8 @@ impl FakeClicker {
             distribution_rk: Normal::new(RK_CENTER, 10.0).unwrap(),
         }
     }
+
+    pub async fn test(&mut self) -> Result<(), NoError> {
+        Ok(())
+    }
 }

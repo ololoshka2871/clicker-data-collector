@@ -77,8 +77,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{ table_row_editable_float('Последовательный Порт', 'RkMeterPort', config.RkMeterPort ) }}
-                        {{ table_row_editable_float('Веб-порт', 'WebPort', config.WebPort ) }}
+                        {{ table_row_editable_float('Последовательный Порт', 'RkMeterPort', config.RkMeterPort) }}
+                        {{ table_row_editable_float('Веб-порт', 'WebPort', config.WebPort) }}
+                        {{ table_row_editable_float('Измерительных цыклов', 'Cycles', config.Cycles, mu='шт.') }}
                     </tbody>
                 </table>
             </div>
