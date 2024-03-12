@@ -1,12 +1,8 @@
-use std::sync::Arc;
-
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum_template::{Key, RenderHtml};
 
 use clicker_data_collector::Config;
 use serde::{Deserialize, Serialize};
-
-use tokio::sync::Mutex;
 
 use crate::AppEngine;
 
