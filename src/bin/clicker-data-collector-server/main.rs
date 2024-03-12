@@ -65,13 +65,11 @@ async fn main() -> Result<(), std::io::Error> {
     let (config, config_file) = clicker_data_collector::Config::load();
     tracing::info!("Config loaded:\n{}", config);
 
-    let mut clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
-    /*
+    //let mut clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
     let mut clicker = clicker_data_collector::Clicker::new(
         config.rk_meter_port.clone(),
         std::time::Duration::from_millis(250),
     );
-    */
     tracing::warn!("Testing connection...");
     if let Err(e) = clicker.test().await {
         panic!("Failed to connect to clicker: {:?}", e);
