@@ -15,3 +15,4 @@ pub use config::Config;
 pub use clicker_controller::{ClickerController, MeasureProcessStat, MeasureProcessState};
 pub use clicker_interface::ClickerInterface;
 pub use fake_clicker::FakeClicker;
+pub use clicker::Clicker;

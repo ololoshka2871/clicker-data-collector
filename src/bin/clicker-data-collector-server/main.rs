@@ -64,15 +64,21 @@ async fn main() -> Result<(), std::io::Error> {
     tracing::info!("Loading config...");
     let (config, config_file) = clicker_data_collector::Config::load();
 
-    let fake_clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
+    //let fake_clicker = clicker_data_collector::FakeClicker::new(std::time::Duration::from_secs(1));
+
+    let mut clicker = clicker_data_collector::Clicker::new(
+        config.rk_meter_port.clone(),
+        std::time::Duration::from_millis(250),
+    );
+    tracing::warn!("Testing connection...");
+    if let Err(e) = clicker.test().await {
+        panic!("Failed to connect to clicker: {:?}", e);
+    }
     let clicker_ctrl = clicker_data_collector::ClickerController::new(
-        fake_clicker,
+        clicker,
         std::time::Duration::from_millis(250), // интервал опроса
         3, // цыклов переключения Rk -> Freq -> Rk для получения данных
     );
-
-    tracing::warn!("Testing connection...");
-    // todo
 
     // State for our application
     let mut minijinja = Environment::new();
