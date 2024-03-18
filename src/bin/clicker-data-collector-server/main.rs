@@ -77,7 +77,7 @@ async fn main() -> Result<(), std::io::Error> {
     let clicker_ctrl = clicker_data_collector::ClickerController::new(
         clicker,
         std::time::Duration::from_millis(250), // интервал опроса
-        3, // цыклов переключения Rk -> Freq -> Rk для получения данных
+        config.cycles, // цыклов переключения Rk -> Freq -> Rk для получения данных
     );
 
     // State for our application

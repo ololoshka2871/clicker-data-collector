@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use futures::{SinkExt, StreamExt};
-use rand::RngCore;
 use tokio_serial::SerialPortBuilderExt;
 use tokio_util::codec::Decoder;
 

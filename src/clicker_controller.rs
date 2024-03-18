@@ -23,7 +23,7 @@ pub enum MeasureProcessState {
 pub struct ClickerController {
     status_rx: Receiver<MeasureResult>,
     mc_status_rx: Option<Receiver<MeasureProcessStat>>,
-    switch_cycles: usize,
+    switch_cycles: u32,
 
     measure_handle: Option<tokio::task::JoinHandle<()>>,
     cancel_tx: Sender<()>,
@@ -92,7 +92,7 @@ impl ClickerController {
     pub fn new<E: Debug + Send + 'static, C: ClickerInterface<E> + 'static>(
         clicker: C,
         update_interval: Duration,
-        switch_cycles: usize,
+        switch_cycles: u32,
     ) -> Self {
         let clicker = Arc::new(Mutex::new(clicker));
 
@@ -200,7 +200,7 @@ async fn read_task<E: Debug + Send, C: ClickerInterface<E>>(
 async fn measure_task(
     mut status_rx: Receiver<MeasureResult>,
     mc_status_tx: Sender<MeasureProcessStat>,
-    switch_cycles: usize,
+    switch_cycles: u32,
     mut cancel_rx: Receiver<()>,
 ) {
     let mut freqs = Vec::new();
@@ -214,7 +214,7 @@ async fn measure_task(
 
     cancel_rx.mark_unchanged(); // нужно сбросить, чтобы не было циклической отмены
 
-    let send = |result: MeasureProcessStat, swiches_count: usize| {
+    let send = |result: MeasureProcessStat, swiches_count: u32| {
         tracing::trace!(
             "Measure in {:?}: sw_c={} f={:?}, rk={:?}",
             result.state,
