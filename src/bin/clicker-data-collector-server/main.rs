@@ -49,7 +49,7 @@ async fn main() -> Result<(), std::io::Error> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "clicker-data-collector-server=debug,clicker-data-collector=debug,tower_http=info".into()),
+                .unwrap_or_else(|_| "clicker_data_collector_server=trace,clicker_data_collector=trace,tower_http=info".into()),
         )
         .with(tracing_subscriber::fmt::layer().with_target(false))
         .init();
