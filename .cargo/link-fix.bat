@@ -1,0 +1,2 @@
+set WINDOWS_LIB_PATH=C:\Users\tolyan.SCTBELPA\.cargo\registry\src\index.crates.io-6f17d22bba15001f\windows_x86_64_msvc-0.48.5\lib
+"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.39.33519\bin\HostX64\x64\link.exe" /VERBOSE "%*" /libpath:%WINDOWS_LIB_PATH%

@@ -1,0 +1,2 @@
+[target.x86_64-win7-windows-msvc]
+linker = ".cargo/link-fix.bat"
