@@ -6,9 +6,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@master
+
+      #- name: Runner ID
+      #  run: echo '${{ toJSON(github) }}'
+
+      - name: APT update
+        if: ${{ github.actor == 'nektos/act' }}
+        run: apt update
       
       - name: Install x86_64-w64-mingw32-gcc
-        run: apt update && apt install -y gcc-mingw-w64-x86-64 protobuf-compiler dotnet-sdk-8.0
+        run: apt install -y gcc-mingw-w64-x86-64 protobuf-compiler dotnet-sdk-8.0
 
       - name: Install Libman
         run: dotnet tool install -g Microsoft.Web.LibraryManager.Cli
