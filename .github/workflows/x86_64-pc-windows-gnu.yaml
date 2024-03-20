@@ -4,18 +4,23 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-22.04
+    defaults:
+        run:
+          shell: pwsh
     steps:
-      - uses: actions/checkout@master
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          static: true
+          cc: true
+          platform: x64
 
-      #- name: Runner ID
-      #  run: echo '${{ toJSON(github) }}'
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
 
-      - name: APT update
-        if: ${{ github.actor == 'nektos/act' }}
-        run: apt update
-      
-      - name: Install x86_64-w64-mingw32-gcc
-        run: apt install -y gcc-mingw-w64-x86-64 protobuf-compiler dotnet-sdk-8.0
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
 
       - name: Install Libman
         run: dotnet tool install -g Microsoft.Web.LibraryManager.Cli
@@ -28,6 +33,8 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly --target x86_64-pc-windows-gnu
           source ${HOME}/.cargo/env
       - run: echo "::add-path::${HOME}/.cargo/bin"
+
+      - uses: actions/checkout@master
 
       - name: Compile
         run: |
