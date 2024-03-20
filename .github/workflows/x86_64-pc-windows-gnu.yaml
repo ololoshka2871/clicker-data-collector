@@ -8,19 +8,10 @@ jobs:
         run:
           shell: pwsh
     steps:
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          static: true
-          cc: true
-          platform: x64
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
+      - name: Install x86_64-w64-mingw32-gcc
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-mingw-w64-x86-64 protobuf-compiler dotnet-sdk-8.0
 
       - name: Install Libman
         run: dotnet tool install -g Microsoft.Web.LibraryManager.Cli
