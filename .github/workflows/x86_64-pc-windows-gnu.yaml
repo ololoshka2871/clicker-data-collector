@@ -32,7 +32,7 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly --target x86_64-pc-windows-gnu
           source ${HOME}/.cargo/env
-      - run: echo "::add-path::${HOME}/.cargo/bin"
+      - run: echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
 
       - uses: actions/checkout@master
 
