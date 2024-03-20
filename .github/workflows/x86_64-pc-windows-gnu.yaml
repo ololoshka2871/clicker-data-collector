@@ -25,6 +25,8 @@ jobs:
           echo "${HOME}/.cargo/bin" >> $GITHUB_PATH
 
       - uses: actions/checkout@master
+        with:
+          submodules: recursive
 
       - name: Compile
         run: |
