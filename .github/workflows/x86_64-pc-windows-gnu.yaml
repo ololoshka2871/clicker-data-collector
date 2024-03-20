@@ -1,0 +1,37 @@
+name: Build for Windows (GNU)
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: Install x86_64-w64-mingw32-gcc
+        run: apt update && apt install -y gcc-mingw-w64-x86-64 protobuf-compiler dotnet-sdk-8.0
+
+      - name: Install Libman
+        run: dotnet tool install -g Microsoft.Web.LibraryManager.Cli
+
+      - run: echo "::add-path::${HOME}/.dotnet/tools"
+      - run: libman --version
+
+      - name: Install Rust nightly with x86_64-pc-windows-gnu target
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly --target x86_64-pc-windows-gnu
+          source ${HOME}/.cargo/env
+      - run: echo "::add-path::${HOME}/.cargo/bin"
+
+      - name: Compile
+        run: |
+          cargo build --release --target x86_64-pc-windows-gnu
+          echo "BUILT_ARCHIVE=$(ls target/x86_64-pc-windows-gnu/release/*.exe)" >> $GITHUB_ENV
+          echo "BUILT_CHECKSUM=$(sha256sum target/x86_64-pc-windows-gnu/release/*.exe)" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Binary
+          path: |
+            ${{ env.BUILT_ARCHIVE }}
+            ${{ env.BUILT_CHECKSUM }}
