@@ -25,7 +25,7 @@ jobs:
       - name: Install Libman
         run: dotnet tool install -g Microsoft.Web.LibraryManager.Cli
 
-      - run: echo "::add-path::${HOME}/.dotnet/tools"
+      - run: echo "${HOME}/.dotnet/tools" >> $GITHUB_PATH
       - run: libman --version
 
       - name: Install Rust nightly with x86_64-pc-windows-gnu target
