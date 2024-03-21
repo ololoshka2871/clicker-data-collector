@@ -4,9 +4,6 @@ on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-22.04
-    defaults:
-        run:
-          shell: pwsh
     steps:
       - name: Install x86_64-w64-mingw32-gcc
         run: |
@@ -31,8 +28,11 @@ jobs:
       - name: Compile
         run: |
           cargo build --release --target x86_64-pc-windows-gnu
-          echo "BUILT_ARCHIVE=$(ls target/x86_64-pc-windows-gnu/release/*.exe)" >> $GITHUB_ENV
-          echo "BUILT_CHECKSUM=$(sha256sum target/x86_64-pc-windows-gnu/release/*.exe)" >> $GITHUB_ENV
+          echo "BUILT_ARCHIVE=target/x86_64-pc-windows-gnu/release/clicker-data-collector-server.exe" >> $GITHUB_ENV
+      - name: Generate checksum
+        run: |
+          sha256sum target/x86_64-pc-windows-gnu/release/clicker-data-collector-server.exe > target/x86_64-pc-windows-gnu/release/clicker-data-collector-server.exe.sha256
+          echo "BUILT_CHECKSUM=target/x86_64-pc-windows-gnu/release/clicker-data-collector-server.exe.sha256" >> $GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
