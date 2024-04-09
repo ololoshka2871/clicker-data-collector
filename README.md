@@ -8,10 +8,10 @@
 Сбор данных с устройства "Щелкунчик" и экспорт их в форме Excel файлов.
 Выполнено в форме Web-приложения.
 
-# Windows 7 support
+## Windows 7 support
 Используется [эта](https://doc.rust-lang.org/nightly/rustc/platform-support/win7-windows-msvc.html) инструкция.
 
-## Сборка
+### Сборка
 Windows 7 - это специфический таргет для Rust, поэтому нужно вызывать сборку такой командой.
 Потребуется установленная Visula Studuo и WindowsSDK в ней.
 ```shell
