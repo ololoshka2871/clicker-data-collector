@@ -4,6 +4,10 @@ on:
     branches:
       - master
 
+env:
+  GIT_SSL_NO_VERIFY: true
+  NODE_TLS_REJECT_UNAUTHORIZED: 0
+
 jobs:
   build:
     runs-on: ubuntu-22.04
