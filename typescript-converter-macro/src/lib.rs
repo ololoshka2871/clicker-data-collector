@@ -1,5 +1,5 @@
 #![feature(proc_macro_span)]
-#![feature(track_path)]
+//#![feature(track_path)]
 
 use std::io;
 use std::path::PathBuf;
@@ -118,7 +118,8 @@ pub fn include_ts_relative(file: proc_macro::TokenStream) -> proc_macro::TokenSt
     let ts_file_name = ts_file_name.canonicalize().unwrap();
 
     // Следим за файлом, если он изменится, то перекомпилируемся
-    proc_macro::tracked_path::path(ts_file_name.to_str().unwrap());
+    // требуется #![feature(track_path)] nightly
+    //proc_macro::tracked_path::path(ts_file_name.to_str().unwrap());
 
     let in_file_name_only = PathBuf::from(&infile)
         .file_name()
@@ -136,7 +137,8 @@ pub fn include_ts_proj(file: proc_macro::TokenStream) -> proc_macro::TokenStream
     let ts_file_path = PathBuf::from(&ts_file_name).canonicalize().unwrap();
 
     // Следим за файлом, если он изменится, то перекомпилируемся
-    proc_macro::tracked_path::path(ts_file_path.to_str().unwrap());
+    // требуется #![feature(track_path)] nightly
+    //proc_macro::tracked_path::path(ts_file_path.to_str().unwrap());
 
     let in_file_name_only = PathBuf::from(&ts_file_name)
         .file_name()
