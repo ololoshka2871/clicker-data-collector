@@ -80,12 +80,6 @@ async fn measure_common<F: Fn(&mut DataModel, MeasureProcessStat) + Send + 'stat
 ) -> axum::response::Response {
     use clicker_data_collector::MeasureProcessState;
 
-    #[derive(Serialize)]
-    struct MeasureStatus {
-        result: String,
-        data: MeasureProcessStat,
-    }
-
     let rx = {
         let mut guard = clicker_ctrl.lock().await;
         match guard.start_mesure() {

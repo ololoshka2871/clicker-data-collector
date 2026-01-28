@@ -106,11 +106,11 @@ fn include_ts<R: regex::Replacer>(
 #[proc_macro]
 pub fn include_ts_relative(file: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let span = Span::call_site();
-    let source = span.source_file();
+    let source = PathBuf::from(span.file());
 
     let infile = parse_macro_input!(file as LitStr).value();
     let ts_file_name = source
-        .path()
+        .as_path()
         .parent()
         .expect("Invalid path")
         .join(PathBuf::from(&infile));
