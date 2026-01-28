@@ -1,4 +1,4 @@
-![clc](src/bin/clicker-data-collector-server/www/images/favicon.ico)
+![clc](src/bin/clicker-data-collector-server/wwwroot/images/favicon.ico)
 # Сборщик данных с устройства "Щелкунчик" 0x0000E007
 
 ## Устройство
